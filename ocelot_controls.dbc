@@ -1,0 +1,118 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: EON PED IBST EPAS
+VAL_TABLE_ BRAKEMODE 3 "Reserved" 2 "Position Control" 1 "Relative Control" 0 "Disengadged" ;
+VAL_TABLE_ STATUS 5 "FAULT_TIMEOUT" 4 "FAULT_STARTUP" 3 "FAULT_SCE" 2 "FAULT_SEND" 1 "FAULT_BAD_CHECKSUM" 0 "NO_FAULT" ;
+VAL_TABLE_ YESNO 1 "Yes" 0 "No" ;
+
+
+BO_ 557 DRIVER_TORQUE: 2 EPAS
+ SG_ STEERING_TORQUE_DRIVER : 0|12@1- (0.0625,0) [-128|127.9375] "Nm"  EON
+
+BO_ 512 PEDAL_GAS_COMMAND: 6 EON
+ SG_ GAS_COMMAND : 8|16@1+ (1,0) [0|1] ""  PED
+ SG_ GAS_COMMAND2 : 24|16@1+ (1,0) [0|1] ""  PED
+ SG_ ENABLE : 47|1@1+ (1,0) [0|1] ""  PED
+ SG_ COUNTER : 40|4@1+ (1,0) [0|15] ""  PED
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] ""  PED
+
+BO_ 513 PEDAL_GAS_SENSOR: 6 PED
+ SG_ PED_GAS : 8|16@1+ (1,0) [0|1] ""  EON
+ SG_ PED_GAS2 : 24|16@1+ (1,0) [0|1] ""  EON
+ SG_ STATE : 44|4@1+ (1,0) [0|15] ""  EON
+ SG_ COUNTER : 40|4@1+ (1,0) [0|15] ""  EON
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] ""  EON
+
+BO_ 526 OCELOT_BRAKE_COMMAND: 6 EON
+ SG_ BRAKE_POSITION_COMMAND : 32|12@1+ (0.015625,-5) [-5|47] "mm"  IBST
+ SG_ BRAKE_RELATIVE_COMMAND : 16|16@1+ (0.0078125,-252) [-252|252] ""  IBST
+ SG_ BRAKE_MODE : 12|2@1+ (1,0) [0|3] ""  IBST
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] ""  IBST
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] ""  IBST
+
+BO_ 527 OCELOT_BRAKE_STATUS: 5 IBST
+ SG_ BRAKE_PEDAL_POSITION : 20|12@1+ (0.015625,-5) [-5|47] "mm"  EON
+ SG_ BRAKE_APPLIED : 18|1@1+ (1,0) [0|1] ""  EON
+ SG_ DRIVER_BRAKE_APPLIED : 17|1@1+ (1,0) [0|1] ""  EON
+ SG_ BRAKE_OK : 16|1@1+ (1,0) [0|1] ""  EON
+ SG_ STATUS : 12|4@1+ (1,0) [0|15] ""  EON
+ SG_ EXT_STATUS1 : 32|4@1+ (1,0) [0|15] ""  EON
+ SG_ EXT_STATUS2 : 36|4@1+ (1,0) [0|15] ""  EON
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] ""  EON
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] ""  EON
+
+BO_ 558 STEERING_COMMAND: 5 EON
+ SG_ STEER_TORQUE : 32|8@1- (0.125,0) [-16|15.875] "Nm"  EPAS
+ SG_ STEER_ANGLE : 16|16@1- (0.125,0) [-4096|4095.875] "deg"  EPAS
+ SG_ STEER_MODE : 12|2@1+ (1,0) [0|3] ""  EPAS
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] ""  EPAS
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] ""  EPAS
+
+BO_ 559 STEERING_STATUS: 8 EPAS
+ SG_ STEERING_ANGLE : 40|16@1- (0.125,0) [-4096|4095.875] "deg"  EON
+ SG_ STEERING_SPEED : 24|8@1- (0.015625,0) [-2|1.984375] "rev/s"  EON
+ SG_ STEERING_TORQUE : 16|8@1- (0.125,0) [-16|15.875] "Nm"  EON
+ SG_ CONTROL_STATUS : 12|4@1+ (1,0) [0|15] ""  EON
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] ""  EON
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] ""  EON
+ SG_ TEMPERATURE : 32|8@1+ (1,-60) [-60|195] "C"  EON
+ SG_ DEBUG_STATES : 56|8@1+ (1,0) [0|255] ""  EON
+
+
+
+CM_ SG_ 558 STEER_TORQUE "Steering torque request";
+CM_ SG_ 558 STEER_ANGLE "Steering relative angle request for internal close loop controller";
+CM_ SG_ 558 STEER_MODE "Control mode request. 
+Off - instant 0 torque.
+TorqueControl - use steer_torque
+RelativeControl - use steer_angle as relative target and steer_torque as feedforward. 
+SoftOff - ramp torque to 0 in 1s. 
+Command Off after SoftOff to re-enable control.";
+CM_ SG_ 558 COUNTER "Rolling counter";
+CM_ SG_ 558 CHECKSUM "8bit sum of all bytes and message id";
+CM_ SG_ 559 STEERING_ANGLE "Steering angle calculated from motor position sensor";
+CM_ SG_ 559 STEERING_SPEED "Steering speed calculated from motor position sensor";
+CM_ SG_ 559 STEERING_TORQUE "Motor torque calculated at the steering";
+CM_ SG_ 559 CONTROL_STATUS "Bitwise states: bit0 - sensored torque control is enabled, bit1 - sensor feedback enabled, bit2 - openloop soft off active, bit3 - internal closeloop mode enabled";
+CM_ SG_ 559 COUNTER "Rolling counter";
+CM_ SG_ 559 CHECKSUM "8bit sum of all bytes and message id";
+CM_ SG_ 559 TEMPERATURE "Motor PCB temperature";
+CM_ SG_ 559 DEBUG_STATES "Bitwise status. Refer to source";
+VAL_ 526 BRAKE_MODE 3 "Reserved" 2 "Position Control" 1 "Relative Control" 0 "Disengadged" ;
+VAL_ 527 BRAKE_OK 1 "Yes" 0 "No" ;
+VAL_ 527 STATUS 5 "FAULT_TIMEOUT" 4 "FAULT_STARTUP" 3 "FAULT_SCE" 2 "FAULT_SEND" 1 "FAULT_BAD_CHECKSUM" 0 "NO_FAULT" ;
+VAL_ 558 STEER_MODE 0 "Off" 1 "TorqueControl" 2 "RelativeControl" 3 "SoftOff" ;
+
