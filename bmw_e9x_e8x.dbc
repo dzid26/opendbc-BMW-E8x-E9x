@@ -370,7 +370,7 @@ BO_ 192 Alive_Central_Gateway: 8 JBBF
 
 BO_ 193 Alive_counter_telephone: 8 CCC
 
-BO_ 213 Request_wheel_torque_brake: 8 DSC
+BO_ 213 Request_wheel_torque_brake: 8 LDM
  SG_ Checksum_213 : 0|8@1+ (1,0) [0|19] "" XXX
  SG_ Counter_213 : 8|4@1- (1,0) [0|255] "" XXX
 
