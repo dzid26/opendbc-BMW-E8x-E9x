@@ -371,6 +371,8 @@ BO_ 192 Alive_Central_Gateway: 8 JBBF
 BO_ 193 Alive_counter_telephone: 8 CCC
 
 BO_ 213 Request_wheel_torque_brake: 8 DSC
+ SG_ Checksum_213 : 0|8@1+ (1,0) [0|19] "" XXX
+ SG_ Counter_213 : 8|4@1- (1,0) [0|255] "" XXX
 
 BO_ 215 Alive_Counter_Security: 8 ACSM
 
@@ -417,12 +419,20 @@ BO_ 298 Sensor_data_ROSE: 8 ASCM
 BO_ 300 input_data_ROSE: 8 DSC
 
 BO_ 336 Request_1_ACC: 8 LDM
+ SG_ Checksum_336 : 0|8@1+ (1,0) [0|19] "" XXX
+ SG_ Counter_336 : 8|4@1- (1,0) [0|255] "" XXX
 
 BO_ 339 Request_2_ACC: 8 LDM
+ SG_ Checksum_339 : 0|8@1+ (1,0) [0|19] "" XXX
+ SG_ Counter_339 : 8|4@1- (1,0) [0|255] "" XXX
 
 BO_ 345 Object_data_ACC: 8 ACC_Sensor
+ SG_ Checksum_345 : 0|8@1+ (1,0) [0|19] "" XXX
+ SG_ Counter_345 : 8|4@1- (1,0) [0|255] "" XXX
 
 BO_ 348 Status_ACC: 8 ACC_Sensor
+ SG_ Checksum_348 : 0|8@1+ (1,0) [0|19] "" XXX
+ SG_ Counter_348 : 8|4@1- (1,0) [0|255] "" XXX
 
 BO_ 351 Requirement_angle_FFP: 8 LDM
 
