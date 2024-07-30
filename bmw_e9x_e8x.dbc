@@ -33,7 +33,7 @@ NS_ :
 
 BS_:
 
-BU_: EON RDC SZL VGSG JBBF RFK FLA RAD1 CAS CID AHM HKL HUD EKP DWA DSC SM_BF GWS VDM DDE1 ACI CCC DSC SM_FA CTM LDM RSE MRSZ VDA EDCK ZBE EGS ACC_Sensor Kombi IHKA ARS ACSM FZD PGS NVC AFS DME FRMFA EMF FKA VSW EPS PDC DKG EHC Diagnosetool_PT_CAN Diagnosetool_K_CAN_System Vector__XXX XXX
+BU_: EON RDC SZL VGSG JBBF RFK FLA RAD1 CAS CID AHM HKL HUD EKP DWA DSC SM_BF GWS VDM DDE1 ACI CCC DSC SM_FA CTM LDM RSE MRSZ VDA EDCK ZBE EGS ACC_Sensor Kombi IHKA ARS ACSM FZD PGS NVC AFS DME FRMFA EMF FKA VSW EPS PDC DKG SMG EHC SZM KGM Diagnosetool_PT_CAN Diagnosetool_K_CAN_System Vector__XXX XXX
 
 
 BO_ 128 SYNC: 5 XXX
@@ -83,6 +83,8 @@ BO_ 173 Delay_request_ACC: 8 LDM
 
 BO_ 177 Torque_request_steering: 8 DSC
 
+BO_ 179 Control_steering_assist: 8 AFS
+
 BO_ 180 WheelTorqueDriveTrain1: 8 DME
 
 BO_ 181 Torque_request_EGS: 8 EGS
@@ -100,6 +102,8 @@ BO_ 184 TorqueRequest_DCT: 8 DKG
  SG_ Checksum_184 : 0|8@1+ (1,0) [0|15] "" XXX
  SG_ Counter_184 : 8|4@1+ (1,0) [0|15] "" XXX
 
+BO_ 185 Torque_request_AFS: 8 AFS
+
 BO_ 186 TransmissionData: 8 EGS
  SG_ GearTar : 0|4@1+ (1,-4) [0|255] "" XXX
  SG_ Shifting : 4|1@1+ (1,0) [0|15] "" XXX
@@ -111,6 +115,8 @@ BO_ 186 TransmissionData: 8 EGS
 BO_ 187 Target_torque_request: 8 DSC
 
 BO_ 188 Status_target_torque_conversion: 8 VGSG
+
+BO_ 189 Torque_request_SSG: 8 SMG
 
 BO_ 190 Alive_Counter: 8 ARS
 
@@ -389,9 +395,15 @@ BO_ 491 Operation_active_seat_FA: 8 IHKA
 
 BO_ 492 Operation_active_seat_BF: 8 IHKA
 
+BO_ 493 Operation_backrest_adjust_FA: 8 SZM
+
 BO_ 494 Steering_column_switch_operation: 8 FRMFA
 
-BO_ 499 Operation_seat_memory_FA: 8 XXX
+BO_ 495 Operation_backrest_adjust_BF: 8 SZM
+
+BO_ 498 Operation_seat_memory_BF: 8 SZM
+
+BO_ 499 Operation_seat_memory_FA: 8 SZM
 
 BO_ 502 TurnSignals: 2 FRMFA
  SG_ HoldActivated : 0|1@1+ (1,0) [0|1] "" XXX
@@ -484,6 +496,10 @@ BO_ 598 Challenge_Passive_Access: 8 CAS
 BO_ 600 Status_Transmission_Passive_Access: 8 PGS
 
 BO_ 604 Operation_of_climate_additional_programs: 8 CCC
+
+BO_ 619 Operation_blinds_BF: 8 KGM
+
+BO_ 620 Operation_blinds_FA: 8 KGM
 
 BO_ 621 Operation_blinds_MK: 8 IHKA
 
@@ -656,6 +672,8 @@ BO_ 806 Status_damper_program: 8 VDM
 
 BO_ 808 Relativzeit: 8 Kombi
 
+BO_ 810 Control_ALC: 8 XXX
+
 BO_ 813 Display_HDC: 8 DSC
 
 BO_ 814 Status_climate_internal_control_info: 8 IHKA
@@ -684,9 +702,11 @@ BO_ 830 Status_Monitor_Fond_2: 8 CID
 
 BO_ 841 Raw_data_level_tank: 8 JBBF
 
-BO_ 843 Seat_back_lock_status_FA: 8 SM_FA
+BO_ 843 Status_seat_back_lock_FA: 8 SM_FA
 
 BO_ 845 Status_seat_back_lock_BF: 8 SM_BF
+
+BO_ 846 Navi_sys_info: 8 CCC
 
 BO_ 847 Status_contact_handbrake: 8 JBBF
  SG_ Handbrake_push : 0|2@1+ (1,0) [0|3] "" XXX
