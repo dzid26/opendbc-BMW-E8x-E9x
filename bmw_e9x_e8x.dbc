@@ -33,7 +33,7 @@ NS_ :
 
 BS_:
 
-BU_: EON RDC SZL VGSG JBBF RFK FLA RAD1 CAS CID AHM HKL HUD EKP DWA DSC SM_BF GWS VDM DDE1 ACI CCC DSC SM_FA CTM LDM RSE MRSZ VDA EDCK ZBE EGS ACC_Sensor Kombi IHKA ARS ACSM FZD PGS NVC AFS DME FRMFA EMF FKA VSW EPS PDC DKG SMG EHC SZM KGM Diagnosetool_PT_CAN Diagnosetool_K_CAN_System Vector__XXX XXX
+BU_: EON RDC SZL VGSG JBBF RFK FLA RAD1 CAS CID AHM HKL HUD EKP DWA DSC SM_BF GWS VDM DDE1 ACI CCC DSC SM_FA CTM LDM RSE MRSZ VDA EDCK ZBE EGS ACC Kombi IHKA ARS ACSM FZD PGS NVC AFS DME FRMFA EMF FKA VSW EPS PDC DKG SMG EHC SZM KGM Diagnosetool_PT_CAN Diagnosetool_K_CAN_System Vector__XXX XXX
 
 
 BO_ 128 SYNC: 5 XXX
@@ -121,9 +121,9 @@ BO_ 189 Torque_request_SSG: 8 SMG
 BO_ 190 Alive_Counter: 8 ARS
 
 BO_ 191 RequestedWheelTorqueDriveTrain: 8 LDM
- SG_ Checksum_191 : 0|8@1+ (1,0) [0|19] "" XXX
- SG_ Counter_191 : 8|4@1- (1,0) [0|255] "" XXX
- SG_ TorqueReq : 16|12@1- (0.5,350) [-1024|1023.96875] "" XXX
+ SG_ Checksum_191 : 0|8@1+ (1,0) [0|19] "" DME
+ SG_ Counter_191 : 8|4@1- (1,0) [0|255] "" DME
+ SG_ TorqueReq : 16|12@1- (0.5,350) [-1024|1023.96875] "" DME
 
 BO_ 192 Alive_Central_Gateway: 8 JBBF
 
@@ -168,8 +168,8 @@ BO_ 212 Unknown_d4: 8 XXX
  SG_ Checksum_212 : 56|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 213 Request_wheel_torque_brake: 8 LDM
- SG_ Checksum_213 : 0|8@1+ (1,0) [0|19] "" XXX
- SG_ Counter_213 : 8|4@1- (1,0) [0|255] "" XXX
+ SG_ Checksum_213 : 0|8@1+ (1,0) [0|19] "" DSC
+ SG_ Counter_213 : 8|4@1- (1,0) [0|255] "" DSC
 
 BO_ 215 Alive_Counter_Security: 8 ACSM
 
@@ -227,20 +227,20 @@ BO_ 320 Unknown140: 2 XXX
  SG_ State : 7|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 336 Request_1_ACC: 8 LDM
- SG_ Checksum_336 : 0|8@1+ (1,0) [0|19] "" XXX
- SG_ Counter_336 : 8|4@1- (1,0) [0|255] "" XXX
+ SG_ Checksum_336 : 0|8@1+ (1,0) [0|19] "" ACC
+ SG_ Counter_336 : 8|4@1- (1,0) [0|255] "" ACC
 
 BO_ 339 Request_2_ACC: 8 LDM
- SG_ Checksum_339 : 0|8@1+ (1,0) [0|19] "" XXX
- SG_ Counter_339 : 8|4@1- (1,0) [0|255] "" XXX
+ SG_ Checksum_339 : 0|8@1+ (1,0) [0|19] "" ACC
+ SG_ Counter_339 : 8|4@1- (1,0) [0|255] "" ACC
 
-BO_ 345 Object_data_ACC: 8 ACC_Sensor
- SG_ Checksum_345 : 0|8@1+ (1,0) [0|19] "" XXX
- SG_ Counter_345 : 8|4@1- (1,0) [0|255] "" XXX
+BO_ 345 Object_data_ACC: 8 ACC
+ SG_ Checksum_345 : 0|8@1+ (1,0) [0|19] "" LDM
+ SG_ Counter_345 : 8|4@1- (1,0) [0|255] "" LDM
 
-BO_ 348 Status_ACC: 8 ACC_Sensor
- SG_ Checksum_348 : 0|8@1+ (1,0) [0|19] "" XXX
- SG_ Counter_348 : 8|4@1- (1,0) [0|255] "" XXX
+BO_ 348 Status_ACC: 8 ACC
+ SG_ Checksum_348 : 0|8@1+ (1,0) [0|19] "" LDM
+ SG_ Counter_348 : 8|4@1- (1,0) [0|255] "" LDM
 
 BO_ 351 Requirement_angle_FFP: 8 LDM
 
