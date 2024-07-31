@@ -1,42 +1,33 @@
 # distutils: language = c++
 # cython: c_string_encoding=ascii, language_level=3
 
+from cython.operator cimport dereference as deref, preincrement as preinc
+from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.vector cimport vector
-from libcpp.unordered_set cimport unordered_set
-from libc.stdint cimport uint32_t, uint64_t, uint16_t
-from libcpp cimport bool
-from libcpp.map cimport map
+from libc.stdint cimport uint32_t
 
 from .common cimport CANParser as cpp_CANParser
-from .common cimport SignalParseOptions, MessageParseOptions, dbc_lookup, SignalValue, DBC
+from .common cimport dbc_lookup, SignalValue, DBC
 
-import os
 import numbers
 from collections import defaultdict
-
-cdef int CAN_INVALID_CNT = 5
 
 
 cdef class CANParser:
   cdef:
     cpp_CANParser *can
     const DBC *dbc
-    map[string, uint32_t] msg_name_to_address
-    map[uint32_t, string] address_to_msg_name
     vector[SignalValue] can_values
+    vector[uint32_t] addresses
 
   cdef readonly:
     dict vl
     dict vl_all
-    bool can_valid
+    dict ts_nanos
     string dbc_name
-    int can_invalid_cnt
 
-  def __init__(self, dbc_name, signals, checks=None, bus=0, enforce_checks=True):
-    if checks is None:
-      checks = []
-
+  def __init__(self, dbc_name, messages, bus=0):
     self.dbc_name = dbc_name
     self.dbc = dbc_lookup(dbc_name)
     if not self.dbc:
@@ -44,100 +35,77 @@ cdef class CANParser:
 
     self.vl = {}
     self.vl_all = {}
-    self.can_valid = False
-    self.can_invalid_cnt = CAN_INVALID_CNT
+    self.ts_nanos = {}
 
-    cdef int i
-    cdef int num_msgs = self.dbc[0].num_msgs
-    for i in range(num_msgs):
-      msg = self.dbc[0].msgs[i]
-      name = msg.name.decode('utf8')
+    # Convert message names into addresses and check existence in DBC
+    cdef vector[pair[uint32_t, int]] message_v
+    for i in range(len(messages)):
+      c = messages[i]
+      try:
+        m = self.dbc.addr_to_msg.at(c[0]) if isinstance(c[0], numbers.Number) else self.dbc.name_to_msg.at(c[0])
+      except IndexError:
+        raise RuntimeError(f"could not find message {repr(c[0])} in DBC {self.dbc_name}")
 
-      self.msg_name_to_address[name] = msg.address
-      self.address_to_msg_name[msg.address] = name
-      self.vl[msg.address] = {}
-      self.vl[name] = self.vl[msg.address]
-      self.vl_all[msg.address] = defaultdict(list)
-      self.vl_all[name] = self.vl_all[msg.address]
+      address = m.address
+      message_v.push_back((address, c[1]))
+      self.addresses.push_back(address)
 
-    # Convert message names into addresses
-    for i in range(len(signals)):
-      s = signals[i]
-      if not isinstance(s[1], numbers.Number):
-        name = s[1].encode('utf8')
-        s = (s[0], self.msg_name_to_address[name])
-        signals[i] = s
+      name = m.name.decode("utf8")
+      self.vl[address] = {}
+      self.vl[name] = self.vl[address]
+      self.vl_all[address] = defaultdict(list)
+      self.vl_all[name] = self.vl_all[address]
+      self.ts_nanos[address] = {}
+      self.ts_nanos[name] = self.ts_nanos[address]
 
-    for i in range(len(checks)):
-      c = checks[i]
-      if not isinstance(c[0], numbers.Number):
-        name = c[0].encode('utf8')
-        c = (self.msg_name_to_address[name], c[1])
-        checks[i] = c
+    self.can = new cpp_CANParser(bus, dbc_name, message_v)
+    self.update_strings([])
 
-    if enforce_checks:
-      checked_addrs = {c[0] for c in checks}
-      signal_addrs = {s[1] for s in signals}
-      unchecked = signal_addrs - checked_addrs
-      if len(unchecked):
-        err_msg = ', '.join(f"{self.address_to_msg_name[addr].decode()} ({hex(addr)})" for addr in unchecked)
-        raise RuntimeError(f"Unchecked addrs: {err_msg}")
-
-    cdef vector[SignalParseOptions] signal_options_v
-    cdef SignalParseOptions spo
-    for sig_name, sig_address in signals:
-      spo.address = sig_address
-      spo.name = sig_name
-      signal_options_v.push_back(spo)
-
-    message_options = dict((address, 0) for _, address in signals)
-    message_options.update(dict(checks))
-
-    cdef vector[MessageParseOptions] message_options_v
-    cdef MessageParseOptions mpo
-    for msg_address, freq in message_options.items():
-      mpo.address = msg_address
-      mpo.check_frequency = freq
-      message_options_v.push_back(mpo)
-
-    self.can = new cpp_CANParser(bus, dbc_name, message_options_v, signal_options_v)
-    self.update_vl()
-
-  cdef unordered_set[uint32_t] update_vl(self):
-    cdef unordered_set[uint32_t] updated_addrs
-
-    # Update invalid flag
-    self.can_invalid_cnt += 1
-    if self.can.can_valid:
-      self.can_invalid_cnt = 0
-    self.can_valid = self.can_invalid_cnt < CAN_INVALID_CNT
-
-    new_vals = self.can.query_latest()
-    for cv in new_vals:
-      # Cast char * directly to unicode
-      cv_name = <unicode>cv.name
-      self.vl[cv.address][cv_name] = cv.value
-      self.vl_all[cv.address][cv_name].extend(cv.all_values)
-      updated_addrs.insert(cv.address)
-
-    return updated_addrs
-
-  def update_string(self, dat, sendcan=False):
-    for v in self.vl_all.values():
-      v.clear()
-
-    self.can.update_string(dat, sendcan)
-    return self.update_vl()
+  def __dealloc__(self):
+    if self.can:
+      del self.can
 
   def update_strings(self, strings, sendcan=False):
-    for v in self.vl_all.values():
-      v.clear()
+    for address in self.addresses:
+      self.vl_all[address].clear()
 
+    cdef vector[SignalValue] new_vals
+    cur_address = -1
+    vl = {}
+    vl_all = {}
+    ts_nanos = {}
     updated_addrs = set()
-    for s in strings:
-      self.can.update_string(s, sendcan)
-      updated_addrs.update(self.update_vl())
+
+    self.can.update_strings(strings, new_vals, sendcan)
+    cdef vector[SignalValue].iterator it = new_vals.begin()
+    cdef SignalValue* cv
+    while it != new_vals.end():
+      cv = &deref(it)
+
+      # Check if the address has changed
+      if cv.address != cur_address:
+        cur_address = cv.address
+        vl = self.vl[cur_address]
+        vl_all = self.vl_all[cur_address]
+        ts_nanos = self.ts_nanos[cur_address]
+        updated_addrs.add(cur_address)
+
+      # Cast char * directly to unicode
+      cv_name = <unicode>cv.name
+      vl[cv_name] = cv.value
+      vl_all[cv_name] = cv.all_values
+      ts_nanos[cv_name] = cv.ts_nanos
+      preinc(it)
+
     return updated_addrs
+
+  @property
+  def can_valid(self):
+    return self.can.can_valid
+
+  @property
+  def bus_timeout(self):
+    return self.can.bus_timeout
 
 
 cdef class CANDefine():
@@ -154,26 +122,19 @@ cdef class CANDefine():
     if not self.dbc:
       raise RuntimeError(f"Can't find DBC: '{dbc_name}'")
 
-    num_vals = self.dbc[0].num_vals
-
-    address_to_msg_name = {}
-
-    num_msgs = self.dbc[0].num_msgs
-    for i in range(num_msgs):
-      msg = self.dbc[0].msgs[i]
-      name = msg.name.decode('utf8')
-      address = msg.address
-      address_to_msg_name[address] = name
-
     dv = defaultdict(dict)
 
-    for i in range(num_vals):
+    for i in range(self.dbc[0].vals.size()):
       val = self.dbc[0].vals[i]
 
-      sgname = val.name.decode('utf8')
-      def_val = val.def_val.decode('utf8')
+      sgname = val.name.decode("utf8")
+      def_val = val.def_val.decode("utf8")
       address = val.address
-      msgname = address_to_msg_name[address]
+      try:
+        m = self.dbc.addr_to_msg.at(address)
+      except IndexError:
+        raise KeyError(address)
+      msgname = m.name.decode("utf-8")
 
       # separate definition/value pairs
       def_val = def_val.split()

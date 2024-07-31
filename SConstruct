@@ -11,16 +11,15 @@ cereal_dir = Dir('.')
 python_path = sysconfig.get_paths()['include']
 cpppath = [
   '#',
-  '#cereal',
-  "#cereal/messaging",
-  "#opendbc/can",
   '/usr/lib/include',
   python_path
 ]
 
-AddOption('--test',
-          action='store_true',
-          help='build test files')
+AddOption('--minimal',
+          action='store_false',
+          dest='extras',
+          default=True,
+          help='the minimum build. no tests, tools, etc.')
 
 AddOption('--asan',
           action='store_true',
@@ -40,6 +39,7 @@ env = Environment(
     "-Wunused",
     "-Werror",
     "-Wshadow",
+    "-Wno-vla-cxx-extension",
   ] + ccflags_asan,
   LDFLAGS=ldflags_asan,
   LINKFLAGS=ldflags_asan,
@@ -47,15 +47,14 @@ env = Environment(
     "#opendbc/can/",
   ],
   CFLAGS="-std=gnu11",
-  CXXFLAGS="-std=c++1z",
+  CXXFLAGS=["-std=c++1z"],
   CPPPATH=cpppath,
   CYTHONCFILESUFFIX=".cpp",
   tools=["default", "cython"]
 )
 
-QCOM_REPLAY = False
 common = ''
-Export('env', 'zmq', 'arch', 'QCOM_REPLAY', 'common')
+Export('env', 'zmq', 'arch', 'common')
 
 cereal = [File('#cereal/libcereal.a')]
 messaging = [File('#cereal/libmessaging.a')]
@@ -65,6 +64,7 @@ Export('cereal', 'messaging')
 envCython = env.Clone()
 envCython["CPPPATH"] += [np.get_include()]
 envCython["CCFLAGS"] += ["-Wno-#warnings", "-Wno-shadow", "-Wno-deprecated-declarations"]
+envCython["CCFLAGS"].remove("-Werror")
 
 python_libs = []
 if arch == "Darwin":

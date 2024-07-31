@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -26,30 +26,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ocl-icd-opencl-dev \
     opencl-headers \
     tk-dev \
-    python-openssl \
+    python3-pip \
+    python3-dev \
+    python3-openssl \
+    python-is-python3 \
     xz-utils \
     zlib1g-dev \
+    cmake \
   && rm -rf /var/lib/apt/lists/*
 
-RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
-ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:${PATH}"
-RUN pyenv install 3.8.10
-RUN pyenv global 3.8.10
-RUN pyenv rehash
-
 COPY requirements.txt /tmp/
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
-RUN pip install --no-cache-dir pre-commit==2.15.0 pylint==2.5.2
+RUN pip3 install --break-system-packages --no-cache-dir -r /tmp/requirements.txt
+RUN pip3 install --break-system-packages --no-cache-dir pre-commit==2.15.0 pylint==2.17.4
 
 ENV PYTHONPATH=/project
 
+RUN git config --global --add safe.directory '*'
+
 WORKDIR /project
-# TODO: Add tag to cereal
-RUN git clone https://github.com/commaai/cereal.git /project/cereal && cd /project/cereal && git checkout d46f37c314bb92306207db44693b2f58c31f66b9
+RUN git clone https://github.com/commaai/cereal.git /project/cereal && \
+    cd /project/cereal && \
+    git checkout 861144c136c91f70dcbc652c2ffe99f57440ad47 && \
+    rm -rf .git && \
+    scons -j$(nproc) --minimal
 
 COPY SConstruct .
 COPY ./site_scons /project/site_scons
-COPY . /project/opendbc
-
-RUN rm -rf /project/opendbc/.git
-RUN scons -c && scons -j$(nproc)

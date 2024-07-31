@@ -1,117 +1,102 @@
-#include <cassert>
-#include <utility>
 #include <algorithm>
-#include <map>
+#include <cassert>
 #include <cmath>
+#include <map>
+#include <stdexcept>
+#include <utility>
 
-#include "common.h"
+#include "opendbc/can/common.h"
 
-#define WARN printf
 
-// this is the same as read_u64_le, but uses uint64_t as in/out
-uint64_t ReverseBytes(uint64_t x) {
-  return ((x & 0xff00000000000000ull) >> 56) |
-          ((x & 0x00ff000000000000ull) >> 40) |
-          ((x & 0x0000ff0000000000ull) >> 24) |
-          ((x & 0x000000ff00000000ull) >> 8) |
-          ((x & 0x00000000ff000000ull) << 8) |
-          ((x & 0x0000000000ff0000ull) << 24) |
-          ((x & 0x000000000000ff00ull) << 40) |
-          ((x & 0x00000000000000ffull) << 56);
-}
-
-static uint64_t set_value(uint64_t ret, const Signal& sig, int64_t ival) {
-  int shift = sig.is_little_endian? sig.b1 : sig.bo;
-  uint64_t mask = ((1ULL << sig.b2)-1) << shift;
-  uint64_t dat = (ival & ((1ULL << sig.b2)-1)) << shift;
-  if (sig.is_little_endian) {
-    dat = ReverseBytes(dat);
-    mask = ReverseBytes(mask);
+void set_value(std::vector<uint8_t> &msg, const Signal &sig, int64_t ival) {
+  int i = sig.lsb / 8;
+  int bits = sig.size;
+  if (sig.size < 64) {
+    ival &= ((1ULL << sig.size) - 1);
   }
-  ret &= ~mask;
-  ret |= dat;
-  return ret;
+
+  while (i >= 0 && i < msg.size() && bits > 0) {
+    int shift = (int)(sig.lsb / 8) == i ? sig.lsb % 8 : 0;
+    int size = std::min(bits, 8 - shift);
+
+    msg[i] &= ~(((1ULL << size) - 1) << shift);
+    msg[i] |= (ival & ((1ULL << size) - 1)) << shift;
+
+    bits -= size;
+    ival >>= size;
+    i = sig.is_little_endian ? i+1 : i-1;
+  }
 }
 
 CANPacker::CANPacker(const std::string& dbc_name) {
   dbc = dbc_lookup(dbc_name);
   assert(dbc);
 
-  for (int i=0; i<dbc->num_msgs; i++) {
-    const Msg* msg = &dbc->msgs[i];
-    message_lookup[msg->address] = *msg;
-    for (int j=0; j<msg->num_sigs; j++) {
-      const Signal* sig = &msg->sigs[j];
-      signal_lookup[std::make_pair(msg->address, std::string(sig->name))] = *sig;
+  for (const auto& msg : dbc->msgs) {
+    for (const auto& sig : msg.sigs) {
+      signal_lookup[std::make_pair(msg.address, sig.name)] = sig;
     }
   }
-  init_crc_lookup_tables();
 }
 
-uint64_t CANPacker::pack(uint32_t address, const std::vector<SignalPackValue> &signals, int counter) {
-  uint64_t ret = 0;
-  for (const auto& sigval : signals) {
-    double value = sigval.value;
+std::vector<uint8_t> CANPacker::pack(uint32_t address, const std::vector<SignalPackValue> &signals) {
+  auto msg_it = dbc->addr_to_msg.find(address);
+  if (msg_it == dbc->addr_to_msg.end()) {
+    LOGE("undefined address %d", address);
+    return {};
+  }
 
+  std::vector<uint8_t> ret(msg_it->second->size, 0);
+
+  // set all values for all given signal/value pairs
+  bool counter_set = false;
+  for (const auto& sigval : signals) {
     auto sig_it = signal_lookup.find(std::make_pair(address, sigval.name));
     if (sig_it == signal_lookup.end()) {
-      WARN("undefined signal %s - %d\n", sigval.name.c_str(), address);
+      // TODO: do something more here. invalid flag like CANParser?
+      LOGE("undefined signal %s - %d\n", sigval.name.c_str(), address);
       continue;
     }
-    const auto& sig = sig_it->second;
+    const auto &sig = sig_it->second;
 
-    int64_t ival = (int64_t)(round((value - sig.offset) / sig.factor));
+    int64_t ival = (int64_t)(round((sigval.value - sig.offset) / sig.factor));
     if (ival < 0) {
-      ival = (1ULL << sig.b2) + ival;
+      ival = (1ULL << sig.size) + ival;
     }
+    set_value(ret, sig, ival);
 
-    ret = set_value(ret, sig, ival);
+    if (sigval.name == "COUNTER") {
+      counters[address] = sigval.value;
+      counter_set = true;
+    }
   }
 
-  if (counter >= 0){
-    auto sig_it = signal_lookup.find(std::make_pair(address, "COUNTER"));
-    if (sig_it == signal_lookup.end()) {
-      WARN("COUNTER not defined\n");
-      return ret;
-    }
-    const auto& sig = sig_it->second;
+  // set message counter
+  auto sig_it_counter = signal_lookup.find(std::make_pair(address, "COUNTER"));
+  if (!counter_set && sig_it_counter != signal_lookup.end()) {
+    const auto& sig = sig_it_counter->second;
 
-    if ((sig.type != SignalType::HONDA_COUNTER) && (sig.type != SignalType::VOLKSWAGEN_COUNTER)) {
-      WARN("COUNTER signal type not valid\n");
+    if (counters.find(address) == counters.end()) {
+      counters[address] = 0;
     }
-
-    ret = set_value(ret, sig, counter);
+    set_value(ret, sig, counters[address]);
+    counters[address] = (counters[address] + 1) % (1 << sig.size);
   }
 
+  // set message checksum
   auto sig_it_checksum = signal_lookup.find(std::make_pair(address, "CHECKSUM"));
   if (sig_it_checksum != signal_lookup.end()) {
-    const auto& sig = sig_it_checksum->second;
-    if (sig.type == SignalType::HONDA_CHECKSUM) {
-      unsigned int chksm = honda_checksum(address, ret, message_lookup[address].size);
-      ret = set_value(ret, sig, chksm);
-    } else if (sig.type == SignalType::TOYOTA_CHECKSUM) {
-      unsigned int chksm = toyota_checksum(address, ret, message_lookup[address].size);
-      ret = set_value(ret, sig, chksm);
-    } else if (sig.type == SignalType::VOLKSWAGEN_CHECKSUM) {
-      // FIXME: Hackish fix for an endianness issue. The message is in reverse byte order
-      // until later in the pack process. Checksums can be run backwards, CRCs not so much.
-      // The correct fix is unclear but this works for the moment.
-      unsigned int chksm = volkswagen_crc(address, ReverseBytes(ret), message_lookup[address].size);
-      ret = set_value(ret, sig, chksm);
-    } else if (sig.type == SignalType::SUBARU_CHECKSUM) {
-      unsigned int chksm = subaru_checksum(address, ret, message_lookup[address].size);
-      ret = set_value(ret, sig, chksm);
-    } else if (sig.type == SignalType::CHRYSLER_CHECKSUM) {
-      unsigned int chksm = chrysler_checksum(address, ReverseBytes(ret), message_lookup[address].size);
-      ret = set_value(ret, sig, chksm);
-    } else {
-      //WARN("CHECKSUM signal type not valid\n");
+    const auto &sig = sig_it_checksum->second;
+    if (sig.calc_checksum != nullptr) {
+      unsigned int checksum = sig.calc_checksum(address, sig, ret);
+      set_value(ret, sig, checksum);
     }
   }
 
   return ret;
 }
 
-Msg* CANPacker::lookup_message(uint32_t address) {
-  return &message_lookup[address];
+// This function has a definition in common.h and is used in PlotJuggler
+const Msg* CANPacker::lookup_message(uint32_t address) {
+  return dbc->addr_to_msg.at(address);
 }

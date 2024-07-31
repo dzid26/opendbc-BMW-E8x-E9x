@@ -1,19 +1,19 @@
 BMW network overview:
 =====
-BMW fork for of opendbc mainly created for openpilot development (so things like steering angle, speed, buttons were of a biggest intrest).
-BMW E-series have 4 CAN busses:
+BMW fork for of opendbc mainly created for openpilot development (so things like steering angle, speed, buttons were of a biggest interest).
+BMW E-series have 4 CAN buses:
 
 **D-CAN** - [500kbps] - diagnostic CAN - this is in OBD2 port and can be used with "K+DCAN cable" for flashing etc
 
-**F-CAN** - [500kbps] - chasis CAN - things like SZL and DSC connected here - messages from steering and traction control (accelerometers, gyros, steering angle, etc)  
+**F-CAN** - [500kbps] - chasis CAN - things like SZL and DSC connected here - messages from steering and traction control (accelerometers, gyros, steering angle, etc)
 **PT-CAN** - [500kbps] - powertrain CAN - engine and transmission, etc. Some of messages from F-CAN are copied here by JBBF gateway
 
 **K-CAN** - [100kbps] - body CAN - so things like climate, radio, door status, buttons -  Some messages are copied from PT-CAN and F-CAN here too.
 
-Several message-IDs are repeated between buses by the gateway. Note, this DBC doesn't specify which bus contain which message. This could be added perhaps to message description. 
+Several message-IDs are repeated between buses by the gateway. Note, this DBC doesn't specify which bus contain which message. This could be added perhaps to message description.
 
 
-There is many points where K-CAN can be accessed in BMW. PT-CAN and K-CAN can be found in the corner of driver footwell. F-CAN can be found under doorstep trim. D-CAN on pin 6,14 of OBD2 port. 
+There is many points where K-CAN can be accessed in BMW. PT-CAN and K-CAN can be found in the corner of driver footwell. F-CAN can be found under doorstep trim. D-CAN on pin 6,14 of OBD2 port.
 
 
 
@@ -31,7 +31,7 @@ Wondering what's the DBC file format? [Here](http://www.socialledge.com/sjsu/ind
 
 ## How to start reverse engineering cars
 
-[opendbc](https://github.com/commaai/opendbc) is integrated with [cabana](https://community.comma.ai/cabana/).
+[opendbc](https://github.com/commaai/opendbc) is integrated with [cabana](https://github.com/commaai/openpilot/tree/master/tools/cabana).
 
 Use [panda](https://github.com/commaai/panda) to connect your car to a computer.
 
