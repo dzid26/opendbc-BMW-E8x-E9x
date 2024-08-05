@@ -710,8 +710,9 @@ BO_ 845 Status_seat_back_lock_BF: 8 SM_BF
 
 BO_ 846 Navi_sys_info: 8 CCC
 
-BO_ 847 Status_contact_handbrake: 8 JBBF
- SG_ Handbrake_push : 0|2@1+ (1,0) [0|3] "" XXX
+BO_ 847 Status_contact_handbrake: 2 JBBF
+ SG_ Handbrake__pushed_down : 0|1@0+ (1,0) [0|1] "" XXX
+ SG_ Handbrake_pulled_up : 1|1@1+ (1,0) [0|3] "" XXX
 
 BO_ 858 Appointment_Condition_Based_Service: 8 CCC
 
