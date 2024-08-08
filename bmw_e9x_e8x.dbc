@@ -263,17 +263,17 @@ BO_ 403 DynamicCruiseControlStatus: 8 DSC
  SG_ CruiseActive : 43|1@0+ (1,0) [0|1] "" XXX
  SG_ CruiseSpeedChangeRequest : 48|1@0+ (1,0) [0|1] "" XXX
 
-BO_ 404 CruiseControl: 4 SZL
+BO_ 404 CruiseControlStalk: 4 SZL
  SG_ Checksum_404 : 7|8@0+ (1,0) [0|15] "" XXX
  SG_ Counter_404 : 11|4@0+ (1,0) [0|15] "" XXX
  SG_ requests_0xF : 15|4@0+ (1,0) [0|15] "" XXX
- SG_ plus1mph_request : 16|1@0+ (1,0) [0|1] "" XXX
- SG_ plus5mph_request : 17|1@0+ (1,0) [0|0] "" Vector__XXX
- SG_ minus1mph_request : 18|1@0+ (1,0) [0|1] "" XXX
- SG_ minus5mph_request : 19|1@0+ (1,0) [0|0] "" Vector__XXX
- SG_ Cancel_request_up_or_down_stalk : 20|1@0+ (1,0) [0|1] "" XXX
- SG_ Resume_request : 22|1@0+ (1,0) [0|1] "" XXX
- SG_ Cancel_request_up_stalk : 23|1@0+ (1,0) [0|1] "" XXX
+ SG_ plus1 : 16|1@0+ (1,0) [0|1] "" XXX
+ SG_ plus5 : 17|1@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ minus1 : 18|1@0+ (1,0) [0|1] "" XXX
+ SG_ minus5 : 19|1@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ cancel : 20|1@0+ (1,0) [0|1] "" XXX
+ SG_ resume : 22|1@0+ (1,0) [0|1] "" XXX
+ SG_ cancel_lever_up : 23|1@0+ (1,0) [0|1] "" XXX
  SG_ setMe_0xFC : 31|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 405 Operation_push_button_MSA: 8 IHKA
@@ -898,11 +898,11 @@ CM_ SG_ 182 TORQ_TAR_DSC "torque target DSC";
 CM_ SG_ 186 GearTar "Values corresponds to forward gears. TBD Add enums for park, reverse";
 CM_ SG_ 403 CruiseControlSetpointSpeed "Speed target - unit depends on locale";
 CM_ SG_ 404 Counter_404 "Message is sent at higher rate when cruise stalk is pressed";
-CM_ SG_ 404 plus1mph_request "Appears when +1mph/kph stalk is depressed";
-CM_ SG_ 404 minus1mph_request "Appears when -1mph/kph stalk is depressed";
-CM_ SG_ 404 Cancel_request_up_or_down_stalk "Appears when cancel stalk (up or down) is depressed";
-CM_ SG_ 404 Resume_request "It appears when resume stalk button is depressed";
-CM_ SG_ 404 Cancel_request_up_stalk "Appears when cancel stalk (up) is depressed";
+CM_ SG_ 404 plus1 "Appears when +1mph/kph stalk is depressed";
+CM_ SG_ 404 minus1 "Appears when -1mph/kph stalk is depressed";
+CM_ SG_ 404 cancel "Appears when cancel stalk (up or down) is depressed";
+CM_ SG_ 404 resume "It appears when resume stalk button is depressed";
+CM_ SG_ 404 cancel_lever_up "Appears when cancel stalk (up) is depressed";
 CM_ SG_ 408 ShifterPosition "0001 = N|R, 0010 = R, 0011 = N|D, 0100 = D, 0101 = -1, 0110 = +1, 0111 = ManualMode, 1000 = inBetween,";
 CM_ SG_ 408 param1 "can not be 0x03. Always 0 in 135i.";
 CM_ SG_ 408 ParkButtonFirst "0x1 = pressed";
