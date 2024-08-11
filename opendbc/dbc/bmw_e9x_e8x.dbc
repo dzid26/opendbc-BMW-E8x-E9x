@@ -218,8 +218,14 @@ BO_ 298 Sensor_data_ROSE: 8 ASCM
 BO_ 300 input_data_ROSE: 8 DSC
 
 BO_ 304 TerminalStatus: 8 CAS
+ SG_ ST_KL_R : 1|2@0+ (1,0) [0|3] "" XXX
+ SG_ ST_KL_15 : 3|2@0+ (1,0) [0|1] "" XXX
+ SG_ ST_KL_50 : 5|2@0+ (1,0) [0|3] "" XXX
+ SG_ ST_KEY_VLD : 7|2@0+ (1,0) [0|3] "" XXX
+ SG_ NO_KEY : 11|4@0+ (1,0) [0|15] "" XXX
  SG_ IgnitionOff : 22|1@1+ (1,0) [0|3] "" XXX
  SG_ AccOn : 23|1@1+ (1,0) [0|255] "" XXX
+ SG_ ST_KL15_HW : 31|2@0+ (1,0) [0|3] "" XXX
  SG_ Counter_304 : 32|4@1+ (1,0) [0|15] "" XXX
  SG_ Checksum_304 : 36|4@1+ (1,0) [0|255] "" XXX
 
