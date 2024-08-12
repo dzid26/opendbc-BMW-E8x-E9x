@@ -32,7 +32,7 @@ NS_ :
 
 BS_:
 
-BU_: EON RDC SZL VGSG JBBF RFK FLA RAD1 CAS CID AHM HKL HUD EKP DWA DSC SM_BF GWS VDM DDE1 ACI CCC DSC SM_FA CTM LDM RSE MRSZ VDA EDCK ZBE EGS ACC Kombi IHKA ARS ACSM FZD PGS NVC AFS DME FRMFA EMF FKA VSW EPS PDC DKG SMG EHC SZM KGM Diagnosetool_PT_CAN Diagnosetool_K_CAN_System Vector__XXX XXX
+BU_: EON RDC SZL VGSG JBBF RFK FLA RAD1 CAS CID AHM HKL HUD EKP DWA DSC SM_BF GWS VDM DDE1 ACI CCC SM_FA CTM LDM RSE MRSZ VDA EDCK ZBE EGS ACC Kombi IHKA ARS ACSM FZD PGS NVC AFS DME FRMFA EMF FKA VSW EPS PDC DKG SMG EHC SZM KGM Diagnosetool_PT_CAN Diagnosetool_K_CAN_System Vector__XXX XXX
 
 CM_ "Source <https://github.com/dzid26/opendbc-BMW-E8x-E9x>";
 CM_ "Tool32 reference https://www.bimmerforums.com/forum/showthread.php?2298830-E90-Can-bus-project-(E60-E65-E87-)&p=29628499#post29628499"
@@ -100,7 +100,7 @@ BO_ 182 DynamicCruiseControlTorqueDemand: 8 DSC
 
 BO_ 183 Torque_request_ACC: 8 LDM
 
-BO_ 184 TorqueRequest_DCT: 8 DKG
+BO_ 184 Torque_request_DCT: 8 DKG
  SG_ Checksum_184 : 0|8@1+ (1,0) [0|15] "" XXX
  SG_ Counter_184 : 8|4@1+ (1,0) [0|15] "" XXX
 
