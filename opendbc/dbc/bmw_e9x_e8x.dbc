@@ -93,14 +93,14 @@ BO_ 181 Torque_request_EGS: 8 EGS
  SG_ Checksum_Torque_request_EGS : 0|8@1+ (1,0) [0|0] "" XXX
  SG_ Gearbox_temperature : 56|8@1+ (1,0) [0|0] "C" XXX
 
-BO_ 182 DynamicCruiseControlTorqueDemand: 8 DSC
+BO_ 182 DynamicCruiseControlTorqueDemand: 5 DSC
  SG_ Checksum_182 : 0|8@1+ (1,0) [0|15] "" XXX
  SG_ Counter_182 : 8|4@1+ (1,0) [0|14] "" XXX
  SG_ TORQ_TAR_DSC : 12|12@1- (0.5,0) [0|1000] "" XXX
 
 BO_ 183 Torque_request_ACC: 8 LDM
 
-BO_ 184 Torque_request_DCT: 8 DKG
+BO_ 184 TorqueRequest_DCT: 8 DKG
  SG_ Checksum_184 : 0|8@1+ (1,0) [0|15] "" XXX
  SG_ Counter_184 : 8|4@1+ (1,0) [0|15] "" XXX
 
@@ -122,7 +122,7 @@ BO_ 189 Torque_request_SSG: 8 SMG
 
 BO_ 190 Alive_Counter: 8 ARS
 
-BO_ 191 RequestedWheelTorqueDriveTrain: 8 LDM
+BO_ 191 RequestedWheelTorqueDriveTrain: 5 LDM
  SG_ Checksum_191 : 0|8@1+ (1,0) [0|19] "" DME
  SG_ Counter_191 : 8|4@1- (1,0) [0|255] "" DME
  SG_ TorqueReq : 16|12@1- (0.5,350) [-1024|1023.96875] "" DME
@@ -217,7 +217,7 @@ BO_ 298 Sensor_data_ROSE: 8 ASCM
 
 BO_ 300 input_data_ROSE: 8 DSC
 
-BO_ 304 TerminalStatus: 8 CAS
+BO_ 304 TerminalStatus: 5 CAS
  SG_ ST_KL_R : 1|2@0+ (1,0) [0|3] "" XXX
  SG_ ST_KL_15 : 3|2@0+ (1,0) [0|1] "" XXX
  SG_ ST_KL_50 : 5|2@0+ (1,0) [0|3] "" XXX
@@ -256,7 +256,7 @@ BO_ 357 CLU_Status_VDA: 8 VDA
 
 BO_ 370 Acknowledgment_request_Kombination: 8 CCC
 
-BO_ 373 Display_motor_data: 8 DME
+BO_ 373 Display_motor_data: 3 DME
 
 BO_ 400 display_ACC: 8 LDM
 
@@ -284,7 +284,7 @@ BO_ 404 CruiseControlStalk: 4 SZL
 
 BO_ 405 Operation_push_button_MSA: 8 IHKA
 
-BO_ 408 GearSelectorSwitch: 8 GWS
+BO_ 408 GearSelectorSwitch: 5 GWS
  SG_ Counter_408 : 0|4@1+ (1,0) [0|14] "" XXX
  SG_ m3ShifterPosition : 4|4@1+ (1,0) [0|15] "" XXX
  SG_ m3ShifterPositionXOR1111 : 8|4@1+ (1,0) [0|15] "" XXX
@@ -337,9 +337,9 @@ BO_ 428 Status_ARS_module: 8 ARS
 BO_ 436 InstrumentClusterStatus_KOMBI: 8 CCC
  SG_ HandbrakeActive : 41|1@1+ (1,0) [0|3] "" XXX
 
-BO_ 437 HeatFlow_LoadTorqueClimate: 8 IHKA
+BO_ 437 HeatFlow_LoadTorqueClimate: 7 IHKA
 
-BO_ 438 HeatFlowEngine: 8 DME
+BO_ 438 HeatFlowEngine: 7 DME
 
 BO_ 440 Operation_ErgoCommander: 8 ZBE
 
@@ -360,7 +360,7 @@ BO_ 464 EngineData: 8 DME
  SG_ CTR_SLCK : 48|2@1+ (1,0) [0|0] "" XXX
  SG_ RPM_IDLG_TAR : 56|8@1+ (5,0) [0|1270] "1/min" XXX
 
-BO_ 466 TransmissionDataDisplay: 8 EGS
+BO_ 466 TransmissionDataDisplay: 6 EGS
  SG_ ShiftLeverPosition : 0|4@1+ (1,0) [0|8] "" XXX
  SG_ ShiftLeverPositionXOR : 4|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ GearAct : 12|4@1+ (1,-4) [0|15] "" XXX
@@ -437,7 +437,7 @@ BO_ 512 CruiseControlStatus: 8 DME
 
 BO_ 513 Status_EMF_KCAN: 8 EMF
 
-BO_ 514 Dimming: 8 FRMFA
+BO_ 514 Dimming: 2 FRMFA
 
 BO_ 517 Acoustic_request_Kombi: 8 Kombi
 
@@ -463,7 +463,7 @@ BO_ 542 Status_NightVision: 8 NVC
 
 BO_ 548 Operation_push_button_NSW: 8 FRMFA
 
-BO_ 550 RainSensorWiperSpeed: 8 FZD
+BO_ 550 RainSensorWiperSpeed: 5 FZD
 
 BO_ 552 Operation_special_function: 8 CCC
 
@@ -545,12 +545,12 @@ BO_ 674 Operation_of_climate_stand_functions: 8 CCC
 
 BO_ 676 Operation_personalization: 8 Kombi
 
-BO_ 678 WiperSwitch: 8 SZL
+BO_ 678 WiperSwitch: 2 SZL
  SG_ AutoWipersOn : 0|1@1+ (1,0) [0|3] "" XXX
 
 BO_ 690 WheelPressure_KCAN: 8 DSC
 
-BO_ 691 AccelerationData: 8 DSC
+BO_ 691 AccelerationData: 5 DSC
 
 BO_ 692 DWA_Alarm: 8 DWA
 
@@ -568,7 +568,7 @@ BO_ 702 Switch_status_display: 8 VSW
 
 BO_ 703 Water_valve_control: 8 IHKA
 
-BO_ 704 LCD_lighting: 8 Kombi
+BO_ 704 LCD_lighting: 3 Kombi
 
 BO_ 706 Temperatur_Ist_Fond: 8 FKA
 
@@ -612,19 +612,19 @@ BO_ 750 Status_climate_additional_programs: 8 IHKA
 
 BO_ 752 Status_air_condition_functions: 8 IHKA
 
-BO_ 753 Status_driver_detection: 8 MRSZ
+BO_ 753 Status_driver_detection: 3 MRSZ
 
 BO_ 755 Display_switching_instruction: 8 DME
 
 BO_ 756 Air_conditioning_control_SH_ZH_auxiliary_water_pump: 8 IHKA
 
-BO_ 758 LightControl: 8 FRMFA
+BO_ 758 LightControl: 2 FRMFA
 
 BO_ 759 Units: 8 Kombi
 
 BO_ 760 Time_Date: 8 Kombi
 
-BO_ 762 OccupancySeatBeltContact: 8 ACSM
+BO_ 762 OccupancySeatBeltContact: 5 ACSM
  SG_ NEW_SIGNAL_2 : 0|8@1+ (1,0) [0|15] "" XXX
  SG_ NEW_SIGNAL_1 : 8|8@1+ (1,0) [0|255] "" XXX
 
@@ -670,7 +670,7 @@ BO_ 795 Operation_of_tailgate_interior_button: 8 IHKA
 
 BO_ 796 Status_tire_pressure: 8 RDC
 
-BO_ 797 TirePressureStatus: 8 DSC
+BO_ 797 TirePressureStatus: 2 DSC
 
 BO_ 801 Operation_button_camera_BF: 8 IHKA
 
@@ -690,13 +690,13 @@ BO_ 816 Range_Mileage: 8 Kombi
 
 BO_ 817 Programming_of_step_cruise_control: 8 CCC
 
-BO_ 818 Driver_display_speed_range: 8 DME
+BO_ 818 Driver_display_speed_range: 2 DME
 
 BO_ 821 ElectricFuelPumpStatus: 8 EKP
 
 BO_ 822 Display_check_control_message_role: 8 Kombi
 
-BO_ 823 StatusFuelControl: 8 DME
+BO_ 823 StatusFuelControl: 2 DME
 
 BO_ 824 Control_display_check_control_message: 8 Kombi
 
@@ -740,11 +740,11 @@ BO_ 871 Control_display_of_demand_oriented_service: 8 Kombi
 
 BO_ 877 Setting_the_driving_dynamics_switch: 8 JBBF
 
-BO_ 884 WheelToleranceAdjustment: 8 DSC
+BO_ 884 WheelToleranceAdjustment: 5 DSC
 
 BO_ 886 Status_wear_lamella: 8 VGSG
 
-BO_ 893 Status_DKG: 8 DKG
+BO_ 893 Status_DKG: 2 DKG
 
 BO_ 894 Temperatur_Bremse: 8 DSC
 
@@ -752,11 +752,11 @@ BO_ 895 Range_of_diesel_exhaust_gas_additive: 8 DDE1
 
 BO_ 896 chassis_number: 8 CAS
 
-BO_ 897 EngineOilLevel: 8 DME
+BO_ 897 EngineOilLevel: 2 DME
 
 BO_ 898 Electronic_engine_oil_dipstick_M: 8 DME
 
-BO_ 899 Motor_data_2: 8 DME
+BO_ 899 Motor_data_2: 4 DME
 
 BO_ 904 Vehicle_type: 8 CAS
 
@@ -784,15 +784,15 @@ BO_ 937 Status_motor_control_CKM: 8 DME
 
 BO_ 939 Status_Shiftlights_CKM: 8 Kombi
 
-BO_ 940 RunOnTimeTerminal30: 8 JBBF
+BO_ 940 RunOnTimeTerminal30: 2 JBBF
 
 BO_ 944 Status_gear_reverse: 8 FRMFA
 
-BO_ 945 TransmissionData3: 8 DKG
+BO_ 945 TransmissionData3: 6 DKG
  SG_ Checksum_946 : 0|8@1+ (1,0) [0|19] "" XXX
  SG_ Counter_945 : 8|4@1+ (1,0) [0|14] "" XXX
 
-BO_ 947 PowerManagmentConsumptionControl: 8 DME
+BO_ 947 PowerManagmentConsumptionControl: 6 DME
 
 BO_ 948 PowerBatteryVoltage: 8 DME
  SG_ BatteryVoltage : 7|24@0+ (0.001,0) [0|65535] "" XXX
@@ -813,7 +813,7 @@ BO_ 956 Position_window_lifter_security_vehicle: 8 XXX
 
 BO_ 957 Status_consumer_shutdown: 8 FRMFA
 
-BO_ 958 PowerRunningTime: 8 CAS
+BO_ 958 PowerRunningTime: 2 CAS
 
 BO_ 959 Position_window_rear_window: 8 CTM
 
@@ -863,7 +863,7 @@ BO_ 995 Status_tailgate_CKM: 8 HKL
 
 BO_ 996 Configuration_rear_view_camera_CKM: 8 CCC
 
-BO_ 1007 EngineOBD_data: 8 DME
+BO_ 1007 EngineOBD_data: 3 DME
 
 BO_ 1152 NetworkManagment1: 8 XXX
 
