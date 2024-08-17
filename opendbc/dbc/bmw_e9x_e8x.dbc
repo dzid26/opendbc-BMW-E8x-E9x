@@ -471,7 +471,7 @@ BO_ 554 Status_BFS: 8 JBBF
 
 BO_ 556 Operation_push_button_NSL: 8 FRMFA
 
-BO_ 558 Status_BFSH: 8 XXX
+CM_ "BO_ 558 Status_BFSH: 8 XXX";
 
 BO_ 562 Status_FAS: 8 JBBF
 
