@@ -46,8 +46,8 @@ BO_ 128 SYNC: 5 XXX
 BO_ 133 Synchronization_SC_VDA: 8 DSC
 
 BO_ 168 EngineAndBrake: 8 DME
- SG_ Checksum_EngineAndBrake : 0|8@1+ (1,0) [0|0] "" XXX
- SG_ ALIV_TORQ_1_DME : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Checksum_168 : 0|8@1+ (1,0) [0|0] "" XXX
+ SG_ Counter_168 : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ EngineTorque : 12|12@1- (0.03125,0) [-1024|1023] "" XXX
  SG_ EngineTorqueWoInterv : 24|16@1- (0.03125,0) [-1024|1023.96875] "" XXX
  SG_ ST_DMEA_SWO : 44|2@1+ (1,0) [0|0] "" XXX
@@ -257,6 +257,7 @@ BO_ 357 CLU_Status_VDA: 8 VDA
 BO_ 370 Acknowledgment_request_Kombination: 8 CCC
 
 BO_ 373 Display_motor_data: 3 DME
+ SG_ Counter_373 : 3|4@0+ (1,0) [0|15] "" XXX
 
 BO_ 400 display_ACC: 8 LDM
 
@@ -470,8 +471,6 @@ BO_ 552 Operation_special_function: 8 CCC
 BO_ 554 Status_BFS: 8 JBBF
 
 BO_ 556 Operation_push_button_NSL: 8 FRMFA
-
-CM_ "BO_ 558 Status_BFSH: 8 XXX";
 
 BO_ 562 Status_FAS: 8 JBBF
 
@@ -892,7 +891,7 @@ BO_ 1522 ServicesKBM: 8 XXX
 
 BO_ 1577 Unknown_629: 8 XXX
 
-CM_ SG_ 168 ALIV_TORQ_1_DME "Counter TORQ_1";
+CM_ SG_ 168 Counter_168 "Counter TORQ_1";
 CM_ SG_ 168 EngineTorque "Engine torque without inertia - combustion torque";
 CM_ SG_ 168 EngineTorqueWoInterv "Engine torque without inertia and without shift intervention";
 CM_ SG_ 168 BrakePressed "Brake when driver presses the brake or hill hold";
@@ -921,6 +920,7 @@ CM_ SG_ 408 M3_button "M3 POWER (?)";
 CM_ SG_ 414 DSC_full_off "0x4 enabling, 0xA enabled. TBD";
 CM_ SG_ 416 YawRate "Lateral Acceleration";
 CM_ SG_ 466 GearAct "TransmissionDataDisplay";
+CM_ SG_ 466 SportButtonState "Only selected powertrains. Makes throttle, overboost, suspension, steering, shiftpoints more aggressive";
 CM_ SG_ 466 ShiftLeverMode "On the dashboard, there are displayed:  D1...D7 in Normal. S1...S6 in Sport.  M1..M7 in Manual";
 CM_ SG_ 502 HoldActivated "Spikes down if blinker cleared with timeout or turn. Stays off if blinker cleared with stalk";
 CM_ SG_ 502 LeftTurn "Indicates left blinker or when steering returning left clears right blinker";
