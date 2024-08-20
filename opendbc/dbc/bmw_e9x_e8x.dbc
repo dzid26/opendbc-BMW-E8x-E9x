@@ -132,16 +132,16 @@ BO_ 192 Alive_Central_Gateway: 8 JBBF
 BO_ 193 Alive_counter_telephone: 8 CCC
 
 BO_ 196 SteeringWheelAngle: 7 DSC
- SG_ SteeringPosition : 0|16@1- (0.0428316886,0) [-600|600] "degree" XXX
- SG_ SteeringSpeed : 24|16@1- (0.0428316886,0) [0|255] "degree/s" XXX
+ SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "degree" XXX
+ SG_ SteeringSpeed : 24|16@1- (0.04395,0) [0|255] "degree/s" XXX
 
 BO_ 200 SteeringWheelAngle_slow: 6 SZL
- SG_ SteeringPosition : 0|16@1- (0.0428316886,0) [-600|600] "degree" XXX
+ SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "degree" XXX
  SG_ Counter_200 : 20|4@1+ (1,0) [0|15] "" XXX
- SG_ SteeringSpeed : 24|16@1- (0.0428316886,0) [-65535|65535] "degree/s" XXX
+ SG_ SteeringSpeed : 24|16@1- (0.04395,0) [-65535|65535] "degree/s" XXX
 
 BO_ 201 SteeringWheelAngle_DSC: 8 SZL
- SG_ SteeringPosition : 0|16@1- (0.0428316886,0) [-600|600] "deg" DSC
+ SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "deg" DSC
  SG_ Counter_201 : 20|4@1+ (1,0) [0|15] "" DSC
  SG_ SteeringPositionComplementLow : 24|11@1- (1,0) [0|1] "" DSC
 
