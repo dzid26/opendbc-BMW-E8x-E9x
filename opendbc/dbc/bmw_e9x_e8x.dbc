@@ -46,8 +46,8 @@ BO_ 128 SYNC: 5 XXX
 BO_ 133 Synchronization_SC_VDA: 8 DSC
 
 BO_ 168 EngineAndBrake: 8 DME
- SG_ Checksum_168 : 0|8@1+ (1,0) [0|0] "" XXX
- SG_ Counter_168 : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0xa8 : 0|8@1+ (1,0) [0|0] "" XXX
+ SG_ Counter_0xa8 : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ EngineTorque : 12|12@1- (0.03125,0) [-1024|1023] "" XXX
  SG_ EngineTorqueWoInterv : 24|16@1- (0.03125,0) [-1024|1023.96875] "" XXX
  SG_ ST_DMEA_SWO : 44|2@1+ (1,0) [0|0] "" XXX
@@ -59,8 +59,8 @@ BO_ 168 EngineAndBrake: 8 DME
  SG_ BrakeActive : 62|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 169 Torque2: 8 DME
- SG_ CHKSM_TORQ_2_DME : 0|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ ALIV_TORQ_2_DME : 8|4@1+ (1,0) [0|0] "" XXX
+ SG_ Checksum_0xa9 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Counter_0xa9 : 8|4@1+ (1,0) [0|0] "" XXX
  SG_ ST_SW_LEV_RPM : 12|2@1+ (1,0) [0|0] "" XXX
  SG_ ST_INFS : 14|2@1+ (1,0) [0|0] "" XXX
  SG_ TORQ_AVL_MIN : 16|12@1- (0.5,0) [-1023.5|1023.5] "Nm" XXX
@@ -69,8 +69,8 @@ BO_ 169 Torque2: 8 DME
  SG_ TORQ_AVL_SPAR_POS : 52|12@1- (0.5,0) [-1023.5|1023.5] "Nm" XXX
 
 BO_ 170 AccPedal: 8 DME
- SG_ Checksum_170 : 0|8@1- (1,0) [0|65535] "" XXX
- SG_ Counter_170 : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0xaa : 0|8@1- (1,0) [0|65535] "" XXX
+ SG_ Counter_0xaa : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ AcceleratorPedalPercentage : 16|16@1+ (0.04,0) [0|100] "" XXX
  SG_ EngineSpeed : 32|16@1+ (0.25,0) [0|8000] "rpm" XXX
  SG_ ThrottlelActive : 50|1@0+ (1,0) [0|1] "" XXX
@@ -94,15 +94,15 @@ BO_ 181 Torque_request_EGS: 8 EGS
  SG_ Gearbox_temperature : 56|8@1+ (1,0) [0|0] "C" XXX
 
 BO_ 182 DynamicCruiseControlTorqueDemand: 5 DSC
- SG_ Checksum_182 : 0|8@1+ (1,0) [0|15] "" XXX
- SG_ Counter_182 : 8|4@1+ (1,0) [0|14] "" XXX
+ SG_ Checksum_0xb6 : 0|8@1+ (1,0) [0|15] "" XXX
+ SG_ Counter_0xb6 : 8|4@1+ (1,0) [0|14] "" XXX
  SG_ TORQ_TAR_DSC : 12|12@1- (0.5,0) [0|1000] "" XXX
 
 BO_ 183 Torque_request_ACC: 8 LDM
 
 BO_ 184 Torque_request_DCT: 8 DKG
- SG_ Checksum_184 : 0|8@1+ (1,0) [0|15] "" XXX
- SG_ Counter_184 : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0xb8 : 0|8@1+ (1,0) [0|15] "" XXX
+ SG_ Counter_0xb8 : 8|4@1+ (1,0) [0|15] "" XXX
 
 BO_ 185 Torque_request_AFS: 8 AFS
 
@@ -111,8 +111,8 @@ BO_ 186 TransmissionData: 8 EGS
  SG_ Shifting : 4|1@1+ (1,0) [0|15] "" XXX
  SG_ GearRatio : 8|8@1+ (0.05,0) [0|255] "" XXX
  SG_ OutputShaftSpeed : 24|16@1- (0.125,0) [0|255] "rpm" XXX
- SG_ Checksum_186 : 40|8@1+ (1,0) [0|15] "" XXX
- SG_ Counter_186 : 48|4@1+ (1,0) [0|14] "" XXX
+ SG_ Checksum_0xba : 40|8@1+ (1,0) [0|15] "" XXX
+ SG_ Counter_0xba : 48|4@1+ (1,0) [0|14] "" XXX
 
 BO_ 187 Target_torque_request: 8 DSC
 
@@ -123,8 +123,8 @@ BO_ 189 Torque_request_SSG: 8 SMG
 BO_ 190 Alive_Counter: 8 ARS
 
 BO_ 191 RequestedWheelTorqueDriveTrain: 5 LDM
- SG_ Checksum_191 : 0|8@1+ (1,0) [0|19] "" DME
- SG_ Counter_191 : 8|4@1- (1,0) [0|255] "" DME
+ SG_ Checksum_0xbf : 0|8@1+ (1,0) [0|19] "" DME
+ SG_ Counter_0xbf : 8|4@1- (1,0) [0|255] "" DME
  SG_ TorqueReq : 16|12@1- (0.5,350) [-1024|1023.96875] "" DME
 
 BO_ 192 Alive_Central_Gateway: 8 JBBF
@@ -137,19 +137,19 @@ BO_ 196 SteeringWheelAngle: 7 DSC
 
 BO_ 200 SteeringWheelAngle_slow: 6 SZL
  SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "deg" XXX
- SG_ Counter_200 : 20|4@1+ (1,0) [0|15] "" XXX
+ SG_ Counter_0xc8 : 20|4@1+ (1,0) [0|15] "" XXX
  SG_ SteeringSpeed : 24|16@1- (0.04395,0) [-65535|65535] "deg/s" XXX
 
 BO_ 201 SteeringWheelAngle_DSC: 8 SZL
  SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "deg" DSC
- SG_ Counter_201 : 20|4@1+ (1,0) [0|15] "" DSC
+ SG_ Counter_0xc9 : 20|4@1+ (1,0) [0|15] "" DSC
  SG_ SteeringPositionComplementLow : 24|11@1- (1,0) [0|1] "" DSC
 
 BO_ 205 Accelerometer2: 8 XXX
  SG_ YawRate : 0|16@1- (1,0) [0|255] "" XXX
- SG_ CRC8_205 : 16|16@1- (1,0) [0|65535] "" XXX
+ SG_ Checksum_0xcd : 16|16@1- (1,0) [0|65535] "" XXX
  SG_ LateralAcceleration : 32|16@1- (1,0) [0|255] "" XXX
- SG_ Counter_205 : 52|4@1+ (1,0) [0|255] "" XXX
+ SG_ Counter_0xcd : 52|4@1+ (1,0) [0|255] "" XXX
 
 BO_ 206 WheelSpeeds: 8 DSC
  SG_ Wheel_FL : 0|16@1- (0.0625,0) [0|255] "kph" XXX
@@ -161,17 +161,17 @@ BO_ 209 Accelerometer1: 8 XXX
  SG_ YawRate : 0|16@1- (1,0) [0|7] "" XXX
  SG_ Unknown : 16|16@1- (1,0) [0|65535] "" XXX
  SG_ PitchRate : 32|16@1- (1,0) [0|65535] "" XXX
- SG_ Counter_209 : 52|4@1+ (1,0) [0|255] "" XXX
- SG_ CRC8_209 : 56|8@1+ (1,0) [0|255] "" XXX
+ SG_ Counter_0xd1 : 52|4@1+ (1,0) [0|255] "" XXX
+ SG_ Checksum_0xd1 : 56|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 212 Unknown_d4: 8 XXX
  SG_ State1 : 40|8@1+ (1,0) [0|255] "" XXX
- SG_ Counter_212 : 52|4@1+ (1,0) [0|255] "" XXX
- SG_ Checksum_212 : 56|8@1+ (1,0) [0|255] "" XXX
+ SG_ Counter_0xd4 : 52|4@1+ (1,0) [0|255] "" XXX
+ SG_ Checksum_0xd4 : 56|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 213 Request_wheel_torque_brake: 8 LDM
- SG_ Checksum_213 : 0|8@1+ (1,0) [0|19] "" DSC
- SG_ Counter_213 : 8|4@1- (1,0) [0|255] "" DSC
+ SG_ Checksum_0xd5 : 0|8@1+ (1,0) [0|19] "" DSC
+ SG_ Counter_0xd5 : 8|4@1- (1,0) [0|255] "" DSC
 
 BO_ 215 Alive_Counter_Security: 8 ACSM
 
@@ -226,8 +226,8 @@ BO_ 304 TerminalStatus: 5 CAS
  SG_ IgnitionOff : 22|1@1+ (1,0) [0|3] "" XXX
  SG_ AccOn : 23|1@1+ (1,0) [0|255] "" XXX
  SG_ ST_KL15_HW : 31|2@0+ (1,0) [0|3] "" XXX
- SG_ Counter_304 : 32|4@1+ (1,0) [0|15] "" XXX
- SG_ Checksum_304 : 36|4@1+ (1,0) [0|255] "" XXX
+ SG_ Counter_0x130 : 32|4@1+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0x130 : 36|4@1+ (1,0) [0|255] "" XXX
 
 BO_ 309 CrashDisconnectControl: 8 ACSM
 
@@ -235,20 +235,20 @@ BO_ 320 Unknown140: 2 XXX
  SG_ State : 7|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 336 Request_1_ACC: 8 LDM
- SG_ Checksum_336 : 0|8@1+ (1,0) [0|19] "" ACC
- SG_ Counter_336 : 8|4@1- (1,0) [0|255] "" ACC
+ SG_ Checksum_0x150 : 0|8@1+ (1,0) [0|19] "" ACC
+ SG_ Counter_0x150 : 8|4@1- (1,0) [0|255] "" ACC
 
 BO_ 339 Request_2_ACC: 8 LDM
- SG_ Checksum_339 : 0|8@1+ (1,0) [0|19] "" ACC
- SG_ Counter_339 : 8|4@1- (1,0) [0|255] "" ACC
+ SG_ Checksum_0x153 : 0|8@1+ (1,0) [0|19] "" ACC
+ SG_ Counter_0x153 : 8|4@1- (1,0) [0|255] "" ACC
 
 BO_ 345 Object_data_ACC: 8 ACC
- SG_ Checksum_345 : 0|8@1+ (1,0) [0|19] "" LDM
- SG_ Counter_345 : 8|4@1- (1,0) [0|255] "" LDM
+ SG_ Checksum_0x159 : 0|8@1+ (1,0) [0|19] "" LDM
+ SG_ Counter_0x159 : 8|4@1- (1,0) [0|255] "" LDM
 
 BO_ 348 Status_ACC: 8 ACC
- SG_ Checksum_348 : 0|8@1+ (1,0) [0|19] "" LDM
- SG_ Counter_348 : 8|4@1- (1,0) [0|255] "" LDM
+ SG_ Checksum_0x15c : 0|8@1+ (1,0) [0|19] "" LDM
+ SG_ Counter_0x15c : 8|4@1- (1,0) [0|255] "" LDM
 
 BO_ 351 Requirement_angle_FFP: 8 LDM
 
@@ -257,22 +257,22 @@ BO_ 357 CLU_Status_VDA: 8 VDA
 BO_ 370 Acknowledgment_request_Kombination: 8 CCC
 
 BO_ 373 Display_motor_data: 3 DME
- SG_ Counter_373 : 3|4@0+ (1,0) [0|15] "" XXX
+ SG_ Counter_0x175 : 3|4@0+ (1,0) [0|15] "" XXX
 
 BO_ 400 display_ACC: 8 LDM
 
 BO_ 402 GearSelectorSwitch_1: 4 XXX
- SG_ Counter_402 : 24|4@1+ (1,0) [0|14] "" XXX
+ SG_ Counter_0x192 : 24|4@1+ (1,0) [0|14] "" XXX
 
 BO_ 403 DynamicCruiseControlStatus: 8 DSC
- SG_ Counter_403 : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ Counter_0x193 : 7|8@0+ (1,0) [0|255] "" XXX
  SG_ CruiseControlSetpointSpeed : 15|8@0+ (1,-2) [0|255] "kph/mph" XXX
  SG_ CruiseActive : 43|1@0+ (1,0) [0|1] "" XXX
  SG_ CruiseSpeedChangeRequest : 48|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 404 CruiseControlStalk: 4 SZL
- SG_ Checksum_404 : 7|8@0+ (1,0) [0|15] "" XXX
- SG_ Counter_404 : 11|4@0+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0x194 : 7|8@0+ (1,0) [0|15] "" XXX
+ SG_ Counter_0x194 : 11|4@0+ (1,0) [0|15] "" XXX
  SG_ requests_0xF : 15|4@0+ (1,0) [0|15] "" XXX
  SG_ plus1 : 16|1@0+ (1,0) [0|1] "" XXX
  SG_ plus5 : 17|1@0+ (1,0) [0|0] "" Vector__XXX
@@ -286,7 +286,7 @@ BO_ 404 CruiseControlStalk: 4 SZL
 BO_ 405 Operation_push_button_MSA: 8 IHKA
 
 BO_ 408 GearSelectorSwitch: 5 GWS
- SG_ Counter_408 : 0|4@1+ (1,0) [0|14] "" XXX
+ SG_ Counter_0x198 : 0|4@1+ (1,0) [0|14] "" XXX
  SG_ m3ShifterPosition : 4|4@1+ (1,0) [0|15] "" XXX
  SG_ m3ShifterPositionXOR1111 : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ ShifterPosition : 12|4@1+ (1,0) [0|0] "" Vector__XXX
@@ -305,10 +305,10 @@ BO_ 408 GearSelectorSwitch: 5 GWS
 BO_ 414 StatusDSC_KCAN: 8 DSC
  SG_ DSC_full_off : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ DTC_on : 12|1@1+ (1,0) [0|3] "" XXX
- SG_ Counter_414 : 20|4@1+ (1,0) [0|15] "" XXX
+ SG_ Counter_0x19e : 20|4@1+ (1,0) [0|15] "" XXX
  SG_ BrakeStates : 40|8@1+ (1,0) [0|255] "" XXX
  SG_ BrakePressure : 48|8@1- (1,0) [0|255] "" XXX
- SG_ Checksum_414 : 56|8@1+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0x19e : 56|8@1+ (1,0) [0|15] "" XXX
 
 BO_ 416 Speed: 8 DSC
  SG_ VehicleSpeed : 0|12@1- (0.103,0) [0|255] "kph" XXX
@@ -317,13 +317,13 @@ BO_ 416 Speed: 8 DSC
  SG_ AccY : 16|12@1- (1,0) [0|255] "m/s^2" XXX
  SG_ AccX : 28|12@1- (0.025,0) [0|15] "m/s^2" XXX
  SG_ YawRate : 40|12@1- (0.05,0) [0|255] "deg/s" XXX
- SG_ Counter_416 : 52|4@1+ (1,0) [0|14] "" XXX
- SG_ Checksum_416 : 56|8@1+ (1,0) [0|15] "" XXX
+ SG_ Counter_0x1a0 : 52|4@1+ (1,0) [0|14] "" XXX
+ SG_ Checksum_0x1a0 : 56|8@1+ (1,0) [0|15] "" XXX
 
 BO_ 418 TransimissionData2: 8 EGS
- SG_ Counter_418 : 28|4@1+ (1,0) [0|14] "" XXX
+ SG_ Counter_0x1a2 : 28|4@1+ (1,0) [0|14] "" XXX
  SG_ ManualMode : 50|1@0+ (1,0) [0|255] "" XXX
- SG_ Checksum_418 : 56|8@1+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0x1a2 : 56|8@1+ (1,0) [0|15] "" XXX
 
 BO_ 419 Raw_data_longitudinal_acceleration: 8 DSC
 
@@ -353,7 +353,7 @@ BO_ 454 Acoustic_message_PDC: 8 PDC
 BO_ 464 EngineData: 8 DME
  SG_ TEMP_ENG : 0|8@1+ (1,-48) [0|0] "C" XXX
  SG_ TEMP_EOI : 8|8@1+ (1,-48) [0|0] "C" XXX
- SG_ Counter_464 : 16|4@1+ (1,0) [0|14] "" XXX
+ SG_ Counter_0x1d0 : 16|4@1+ (1,0) [0|14] "" XXX
  SG_ ST_ENG_RUN : 20|2@1+ (1,0) [0|0] "" XXX
  SG_ ST_SW_WAUP : 22|2@1+ (1,0) [0|0] "" XXX
  SG_ AIP_ENG : 24|8@1+ (2,598) [600|1106] "hPa" XXX
@@ -366,7 +366,7 @@ BO_ 466 TransmissionDataDisplay: 6 EGS
  SG_ ShiftLeverPositionXOR : 4|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ GearAct : 12|4@1+ (1,-4) [0|15] "" XXX
  SG_ SportButtonState : 26|1@1+ (1,0) [0|1] "" XXX
- SG_ Counter_466 : 28|4@1+ (1,0) [0|14] "" XXX
+ SG_ Counter_0x1d2 : 28|4@1+ (1,0) [0|14] "" XXX
  SG_ ShiftLeverMode : 32|2@1+ (1,0) [0|3] "" XXX
  SG_ xFF : 40|8@1+ (1,0) [0|255] "" XXX
 
@@ -550,8 +550,8 @@ BO_ 678 WiperSwitch: 2 SZL
 BO_ 690 WheelPressure_KCAN: 8 DSC
 
 BO_ 691 AccelerationData: 5 DSC
- SG_ Checksum_691 : 7|8@0+ (1,0) [0|15] "" XXX
- SG_ Counter_691 : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0x2b3 : 7|8@0+ (1,0) [0|15] "" XXX
+ SG_ Counter_0x2b3 : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ Deceleration : 12|8@1- (1,0) [0|255] "" XXX
 
 BO_ 692 DWA_Alarm: 8 DWA
@@ -791,8 +791,8 @@ BO_ 940 RunOnTimeTerminal30: 2 JBBF
 BO_ 944 Status_gear_reverse: 8 FRMFA
 
 BO_ 945 TransmissionData3: 6 DKG
- SG_ Checksum_946 : 0|8@1+ (1,0) [0|19] "" XXX
- SG_ Counter_945 : 8|4@1+ (1,0) [0|14] "" XXX
+ SG_ Checksum_0x3b1 : 0|8@1+ (1,0) [0|19] "" XXX
+ SG_ Counter_0x3b1 : 8|4@1+ (1,0) [0|14] "" XXX
 
 BO_ 947 PowerManagmentConsumptionControl: 6 DME
 
@@ -894,7 +894,7 @@ BO_ 1522 ServicesKBM: 8 XXX
 
 BO_ 1577 Unknown_629: 8 XXX
 
-CM_ SG_ 168 Counter_168 "Counter TORQ_1";
+CM_ SG_ 168 Counter_0xa8 "Counter TORQ_1";
 CM_ SG_ 168 EngineTorque "Engine torque without inertia - combustion torque";
 CM_ SG_ 168 EngineTorqueWoInterv "Engine torque without inertia and without shift intervention";
 CM_ SG_ 168 BrakePressed "Brake when driver presses the brake or hill hold";
