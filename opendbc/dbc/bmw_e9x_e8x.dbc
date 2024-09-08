@@ -132,13 +132,13 @@ BO_ 192 Alive_Central_Gateway: 8 JBBF
 BO_ 193 Alive_counter_telephone: 8 CCC
 
 BO_ 196 SteeringWheelAngle: 7 DSC
- SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "degree" XXX
- SG_ SteeringSpeed : 24|16@1- (0.04395,0) [0|255] "degree/s" XXX
+ SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "deg" XXX
+ SG_ SteeringSpeed : 24|16@1- (0.04395,0) [0|255] "deg/s" XXX
 
 BO_ 200 SteeringWheelAngle_slow: 6 SZL
- SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "degree" XXX
+ SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "deg" XXX
  SG_ Counter_200 : 20|4@1+ (1,0) [0|15] "" XXX
- SG_ SteeringSpeed : 24|16@1- (0.04395,0) [-65535|65535] "degree/s" XXX
+ SG_ SteeringSpeed : 24|16@1- (0.04395,0) [-65535|65535] "deg/s" XXX
 
 BO_ 201 SteeringWheelAngle_DSC: 8 SZL
  SG_ SteeringPosition : 0|16@1- (0.04395,0) [-600|600] "deg" DSC
@@ -316,7 +316,7 @@ BO_ 416 Speed: 8 DSC
  SG_ MovingReverse : 13|1@1+ (1,0) [0|3] "" XXX
  SG_ AccY : 16|12@1- (1,0) [0|255] "m/s^2" XXX
  SG_ AccX : 28|12@1- (0.025,0) [0|15] "m/s^2" XXX
- SG_ YawRate : 40|12@1- (0.05,0) [0|255] "degree/s" XXX
+ SG_ YawRate : 40|12@1- (0.05,0) [0|255] "deg/s" XXX
  SG_ Counter_416 : 52|4@1+ (1,0) [0|14] "" XXX
  SG_ Checksum_416 : 56|8@1+ (1,0) [0|15] "" XXX
 
