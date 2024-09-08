@@ -314,9 +314,9 @@ BO_ 416 Speed: 8 DSC
  SG_ VehicleSpeed : 0|12@1- (0.103,0) [0|255] "kph" XXX
  SG_ MovingForward : 12|1@1+ (1,0) [0|15] "" XXX
  SG_ MovingReverse : 13|1@1+ (1,0) [0|3] "" XXX
- SG_ AccY : 16|12@1- (1,0) [0|255] "" XXX
- SG_ AccX : 28|12@1- (1,0) [0|15] "" XXX
- SG_ YawRate : 40|12@1- (1,0) [0|255] "" XXX
+ SG_ AccY : 16|12@1- (1,0) [0|255] "m/s^2" XXX
+ SG_ AccX : 28|12@1- (0.025,0) [0|15] "m/s^2" XXX
+ SG_ YawRate : 40|12@1- (0.05,0) [0|255] "degree/s" XXX
  SG_ Counter_416 : 52|4@1+ (1,0) [0|14] "" XXX
  SG_ Checksum_416 : 56|8@1+ (1,0) [0|15] "" XXX
 
