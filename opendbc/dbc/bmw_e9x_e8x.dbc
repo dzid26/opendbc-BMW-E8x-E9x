@@ -550,6 +550,9 @@ BO_ 678 WiperSwitch: 2 SZL
 BO_ 690 WheelPressure_KCAN: 8 DSC
 
 BO_ 691 AccelerationData: 5 DSC
+ SG_ Checksum_691 : 7|8@0+ (1,0) [0|15] "" XXX
+ SG_ Counter_691 : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Deceleration : 12|8@1- (1,0) [0|255] "" XXX
 
 BO_ 692 DWA_Alarm: 8 DWA
 
@@ -927,6 +930,7 @@ CM_ SG_ 502 LeftTurn "Indicates left blinker or when steering returning left cle
 CM_ SG_ 502 RightTurn "Indicates right blinker or when steering returning right clears left blinker";
 CM_ SG_ 502 TurnSignalActive "Turn signal on or transitioning";
 CM_ SG_ 502 TurnSignalIdle "Turn signal off";
+CM_ SG_ 691 Deceleration "Filtered deceleration. Opposite to AccY signal";
 CM_ SG_ 790 DTC_pressed "Traction control off. Message transmitted when pressed. Few presses may be required followed by off.";
 CM_ SG_ 790 setMe_0x3FFF "All ones";
 VAL_ 408 ShifterPosition 1 "D" 2 "S" 3 "N" 4 "R" 5 "P";
