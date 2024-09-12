@@ -101,13 +101,8 @@ BO_ 182 DynamicCruiseControlTorqueDemand: 5 DSC
 BO_ 183 Torque_request_ACC: 8 LDM
 
 BO_ 184 Torque_request_DCT: 8 DKG
-<<<<<<< HEAD
- SG_ Checksum_184 : 0|8@1+ (1,0) [0|15] "" XXX
- SG_ Counter_184 : 8|4@1+ (1,0) [0|15] "" XXX
-=======
  SG_ Checksum_0xb8 : 0|8@1+ (1,0) [0|15] "" XXX
  SG_ Counter_0xb8 : 8|4@1+ (1,0) [0|15] "" XXX
->>>>>>> f20efae4d13546a547dd38e48b946094088c8816
 
 BO_ 185 Torque_request_AFS: 8 AFS
 
