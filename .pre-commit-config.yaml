@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
     -   id: check-ast
     -   id: check-yaml
@@ -9,7 +9,7 @@ repos:
     -   id: check-executables-have-shebangs
     -   id: check-shebang-scripts-are-executable
 -   repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
     -   id: codespell
         exclude: '\.dbc$'
@@ -17,15 +17,15 @@ repos:
         - --check-hidden
         - --builtins clear,rare,informal,usage,code,names,en-GB_to_en-US
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.9.0
+    rev: v1.11.2
     hooks:
     -   id: mypy
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.2
+    rev: v0.6.8
     hooks:
     - id: ruff
 -   repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.16.0
+    rev: v0.16.2
     hooks:
     -   id: cython-lint
     -   id: double-quote-cython-strings
