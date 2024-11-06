@@ -314,8 +314,8 @@ BO_ 416 Speed: 8 DSC
  SG_ VehicleSpeed : 0|12@1- (0.103,0) [0|255] "kph" XXX
  SG_ MovingForward : 12|1@1+ (1,0) [0|15] "" XXX
  SG_ MovingReverse : 13|1@1+ (1,0) [0|3] "" XXX
- SG_ AccY : 16|12@1- (0.025,0) [0|255] "" XXX
- SG_ AccX : 28|12@1- (1,0) [0|15] "" XXX
+ SG_ LongAcc : 16|12@1- (0.025,0) [0|255] "" XXX
+ SG_ LatlAcc : 28|12@1- (1,0) [0|15] "" XXX
  SG_ YawRate : 40|12@1- (1,0) [0|255] "" XXX
  SG_ Counter_416 : 52|4@1+ (1,0) [0|14] "" XXX
  SG_ Checksum_416 : 56|8@1+ (1,0) [0|15] "" XXX
@@ -917,6 +917,8 @@ CM_ SG_ 408 param5 "Always 0 in 135i.";
 CM_ SG_ 408 SportButtonPressed "0x1 = pressed;";
 CM_ SG_ 408 M3_button "M3 POWER (?)";
 CM_ SG_ 414 DSC_full_off "0x4 enabling, 0xA enabled. TBD";
+CM_ SG_ 416 LongAcc "Longitudinal acceleration";
+CM_ SG_ 416 LatlAcc "Lateral acceleration";
 CM_ SG_ 416 YawRate "Lateral Acceleration";
 CM_ SG_ 466 GearAct "TransmissionDataDisplay";
 CM_ SG_ 466 SportButtonState "Only selected powertrains. Makes throttle, overboost, suspension, steering, shiftpoints more aggressive";
