@@ -70,7 +70,7 @@ BO_ 169 Torque2: 8 DME
 
 BO_ 170 AccPedal: 8 DME
  SG_ Checksum_0xaa : 0|8@1- (1,0) [0|65535] "" XXX
- SG_ Counter_0xaa : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Counter_0xaa : 8|4@1+ (1,0) [0|14] "" XXX
  SG_ AcceleratorPedalPercentage : 16|16@1+ (0.04,0) [0|100] "" XXX
  SG_ EngineSpeed : 32|16@1+ (0.25,0) [0|8000] "rpm" XXX
  SG_ ThrottlelActive : 50|1@0+ (1,0) [0|1] "" XXX
@@ -93,16 +93,18 @@ BO_ 181 Torque_request_EGS: 8 EGS
  SG_ Checksum_Torque_request_EGS : 0|8@1+ (1,0) [0|0] "" XXX
  SG_ Gearbox_temperature : 56|8@1+ (1,0) [0|0] "C" XXX
 
-BO_ 182 DynamicCruiseControlTorqueDemand: 5 DSC
- SG_ Checksum_0xb6 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ Counter_0xb6 : 8|4@1+ (1,0) [0|14] "" XXX
- SG_ TORQ_TAR_DSC : 12|12@1- (0.5,0) [0|1000] "" XXX
+BO_ 182 Torque_request_DSC: 5 DSC
+ SG_ Checksum_0xb6 : 0|8@1+ (1,0) [0|255] "" DME
+ SG_ Counter_0xb6 : 8|4@1+ (1,0) [0|14] "" DME
+ SG_ TORQ_TAR_DSC : 12|12@1- (0.5,0) [1024|1023.5] "Nm" DME
+ SG_ TORQ_TAR_ADJR_POS_DSC : 24|12@1- (0.5,0) [1024|1023.5] "Nm" DME
+ SG_ ST_TORQ_TAR_DSC : 36|2@1+ (1,0) [0|3] "" DME
 
 BO_ 183 Torque_request_ACC: 8 LDM
 
 BO_ 184 Torque_request_DCT: 8 DKG
- SG_ Checksum_0xb8 : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ Counter_0xb8 : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0xb8 : 0|8@1+ (1,0) [0|255] "" DME
+ SG_ Counter_0xb8 : 8|4@1+ (1,0) [0|15] "" DME
 
 BO_ 185 Torque_request_AFS: 8 AFS
 
@@ -901,7 +903,9 @@ CM_ SG_ 168 BrakePressed "Brake when driver presses the brake or hill hold";
 CM_ SG_ 170 AcceleratorPedalPercentage "ToDo Factor to be adjusted";
 CM_ SG_ 170 ThrottlelActive "Active in cruise control when engine braking";
 CM_ SG_ 170 AcceleratorPedalPressed "Active only when driver actually presses the pedal";
-CM_ SG_ 182 TORQ_TAR_DSC "torque target DSC";
+CM_ BO_ 182 "Tranction control and dynamic cruise control torque requests (DynamicCruiseControlTorqueDemand)";
+CM_ SG_ 182 TORQ_TAR_DSC "torque target (fast)";
+CM_ SG_ 182 TORQ_TAR_ADJR_POS_DSC "torque target (slow)";
 CM_ SG_ 186 GearTar "Values corresponds to forward gears. TBD Add enums for park, reverse";
 CM_ SG_ 403 CruiseControlSetpointSpeed "Speed target - unit depends on locale";
 CM_ SG_ 404 Counter_0x194 "Message is sent at higher rate when cruise stalk is pressed";
@@ -933,6 +937,7 @@ CM_ SG_ 502 TurnSignalIdle "Turn signal off";
 CM_ SG_ 691 Deceleration "Filtered deceleration. Opposite to AccY signal";
 CM_ SG_ 790 DTC_pressed "Traction control off. Message transmitted when pressed. Few presses may be required followed by off.";
 CM_ SG_ 790 setMe_0x3FFF "All ones";
+VAL_ 182 ST_TORQ_TAR_DSC 0 "no intervention" 1 "ASR intervention - increase torque" 2 "MSR intervention - decrease torque" 3 "signal invalid";
 VAL_ 408 ShifterPosition 1 "D" 2 "S" 3 "N" 4 "R" 5 "P";
 VAL_ 464 ST_ENG_RUN 3 "signal invalid" 2 "engine running" 1 "engine starting" 0 "engine off";
 VAL_ 464 ST_SW_WAUP 3 "signal invalid" 2 "EGS forced switching active" 1 "engine warm" 0 "warming up";
