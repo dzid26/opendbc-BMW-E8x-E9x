@@ -91,8 +91,16 @@ BO_ 179 Control_steering_assist: 8 AFS
 BO_ 180 WheelTorqueDriveTrain1: 8 DME
 
 BO_ 181 Torque_request_EGS: 8 EGS
- SG_ Checksum_Torque_request_EGS : 0|8@1+ (1,0) [0|0] "" XXX
- SG_ Gearbox_temperature : 56|8@1+ (1,0) [0|0] "C" XXX
+ SG_ Checksum_0xb5 : 0|8@1+ (1,0) [0|0] "" DME
+ SG_ Counter_0xb5 : 8|4@1+ (1,0) [0|14] "" DME
+ SG_ TORQ_TAR_EGS : 12|12@1- (0.5,0) [1024|1023.5] "Nm" DME
+ SG_ TORQ_TAR_ADJR_POS_EGS : 24|12@1- (0.5,0) [1024|1023.5] "Nm" DME
+ SG_ ST_OTMP_GRB : 38|2@1+ (1,0) [0|3] "" DME
+ SG_ ST_OBD_GRB : 40|4@1+ (1,0) [0|15] "" DME
+ SG_ ST_OBD_ERR_GRB : 44|2@1+ (1,0) [0|3] "" DME
+ SG_ ST_LIM_STORQ : 46|2@1+ (1,0) [0|3] "" DME
+ SG_ TORQ_DRAW_GRB : 48|8@1+ (0.5,0) [0|255] "Nm" DME
+ SG_ TEMP_GRB : 56|8@1- (1,40) [0|0] "C" DME
 
 BO_ 182 Torque_request_DSC: 5 DSC
  SG_ Checksum_0xb6 : 0|8@1+ (1,0) [0|255] "" DME
@@ -912,6 +920,11 @@ CM_ SG_ 168 BrakePressed "Brake when driver presses the brake or hill hold";
 CM_ SG_ 170 AcceleratorPedalPercentage "ToDo Factor to be adjusted";
 CM_ SG_ 170 ThrottlelActive "Active in cruise control when engine braking";
 CM_ SG_ 170 AcceleratorPedalPressed "Active only when driver actually presses the pedal";
+CM_ SG_ 181 ST_OTMP_GRB "overtemperature gearbox status";
+CM_ SG_ 181 ST_OBD_GRB "status OBD_error gearbox";
+CM_ SG_ 181 ST_LIM_STORQ "starting torque limitation status";
+CM_ SG_ 181 TORQ_DRAW_GRB "Torque converter - looks like fluid path torque before multiplication";
+CM_ SG_ 181 TEMP_GRB "gearbox temperature";
 CM_ BO_ 182 "Tranction control and dynamic cruise control torque requests (DynamicCruiseControlTorqueDemand)";
 CM_ SG_ 182 TORQ_TAR_DSC "torque target (fast)";
 CM_ SG_ 182 TORQ_TAR_ADJR_POS_DSC "torque target (slow)";
@@ -947,6 +960,11 @@ CM_ SG_ 502 TurnSignalIdle "Turn signal off";
 CM_ SG_ 691 Deceleration "Filtered deceleration. Opposite to AccY signal";
 CM_ SG_ 790 DTC_pressed "Traction control off. Message transmitted when pressed. Few presses may be required followed by off.";
 CM_ SG_ 790 setMe_0x3FFF "All ones";
+VAL_ 181 ST_OTMP_GRB 0 "no request" 1 "cooling request, stage1" 2 "cooling request, stage1" 3 "signal invalid";
+VAL_ 181 ST_OBD_GRB 0 "STATE_ETCU_OBD = MIL_OFF" 2 "STATE_ETCU_OBD = MIL_OFF" 4 "STATE_ETCU_OBD = MIL_ON" 6 "STATE_ETCU_OBD = MIL_ON" 8 "STATE_ETCU_OBD = MIL_FLL" 10 "STATE_ETCU_OBD = MIL_FLL" 12 "STATE_ETCU_OBD = IDLE" 14 "STATE_ETCU_OBD = INI_VALUE" 15 "signal invalid";
+VAL_ 181 ST_OBD_ERR_GRB 0 "NO_OBD_ERROR" 1 "OBD_ERROR" 2 "signal invalid";
+VAL_ 181 ST_LIM_STORQ 0 "NO_INTERVENTION" 1 "INTERVENTION";
+VAL_ 181 TORQ_DRAW_GRB 255 "signal invalid";
 VAL_ 182 ST_TORQ_TAR_DSC 0 "no intervention" 1 "ASR intervention - increase torque" 2 "MSR intervention - decrease torque" 3 "signal invalid";
 VAL_ 183 ST_TORQ_TAR_ACC 0 "no intervention" 1 "increase torque" 2 "signal invalid" 3 "signal invalid";
 VAL_ 183 RQ_PREV_INFS_ACC 0 "no request" 1 "request over-run-fuel-shutoff inhibition" 3 "signal invalid";
