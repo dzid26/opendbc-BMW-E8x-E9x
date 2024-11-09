@@ -35,6 +35,7 @@ BS_:
 BU_: EON RDC SZL VGSG JBBF RFK FLA RAD1 CAS CID AHM HKL HUD EKP DWA DSC SM_BF GWS VDM DDE1 ACI CCC SM_FA CTM LDM RSE MRSZ VDA EDCK ZBE EGS ACC Kombi IHKA ARS ACSM FZD PGS NVC AFS DME FRMFA EMF FKA VSW EPS PDC DKG SMG EHC SZM KGM Diagnosetool_PT_CAN Diagnosetool_K_CAN_System Vector__XXX XXX
 
 CM_ "Source <https://github.com/dzid26/opendbc-BMW-E8x-E9x>";
+CM_ "Some data copied from https://github.com/HeinrichG-V12/E65_ReverseEngineering/ and MSD81 document"
 CM_ "Tool32 reference https://www.bimmerforums.com/forum/showthread.php?2298830-E90-Can-bus-project-(E60-E65-E87-)&p=29628499#post29628499"
 CM_ "License MIT";
 
@@ -100,7 +101,15 @@ BO_ 182 Torque_request_DSC: 5 DSC
  SG_ TORQ_TAR_ADJR_POS_DSC : 24|12@1- (0.5,0) [1024|1023.5] "Nm" DME
  SG_ ST_TORQ_TAR_DSC : 36|2@1+ (1,0) [0|3] "" DME
 
-BO_ 183 Torque_request_ACC: 8 LDM
+BO_ 183 Torque_request_ACC: 6 LDM
+ SG_ Checksum_0xb7 : 0|8@1+ (1,0) [0|255] "" DME
+ SG_ Counter_0xb7 : 8|4@1+ (1,0) [0|14] "" DME
+ SG_ TORQ_TAR_DSC : 12|12@1- (0.5,0) [1024|1023.5] "Nm" DME
+ SG_ TORQ_TAR_ADJR_POS_DSC : 24|12@1- (0.5,0) [1024|1023.5] "Nm" DME
+ SG_ ST_TORQ_TAR_ACC : 36|2@1+ (1,0) [0|3] "" DME
+ SG_ RQ_PREV_INFS_ACC : 38|2@1+ (1,0) [0|3] "" DME
+ SG_ ST_ACC_SWO_SYS_DME : 40|2@1+ (1,0) [0|3] "" DME
+ SG_ ST_ACC_MOD_DME : 42|3@1+ (1,0) [0|7] "" DME
 
 BO_ 184 Torque_request_DCT: 8 DKG
  SG_ Checksum_0xb8 : 0|8@1+ (1,0) [0|255] "" DME
@@ -906,6 +915,7 @@ CM_ SG_ 170 AcceleratorPedalPressed "Active only when driver actually presses th
 CM_ BO_ 182 "Tranction control and dynamic cruise control torque requests (DynamicCruiseControlTorqueDemand)";
 CM_ SG_ 182 TORQ_TAR_DSC "torque target (fast)";
 CM_ SG_ 182 TORQ_TAR_ADJR_POS_DSC "torque target (slow)";
+CM_ BO_ 183 "ACC or LDM - active cruise control torque request";
 CM_ SG_ 186 GearTar "Values corresponds to forward gears. TBD Add enums for park, reverse";
 CM_ SG_ 403 CruiseControlSetpointSpeed "Speed target - unit depends on locale";
 CM_ SG_ 404 Counter_0x194 "Message is sent at higher rate when cruise stalk is pressed";
@@ -938,6 +948,10 @@ CM_ SG_ 691 Deceleration "Filtered deceleration. Opposite to AccY signal";
 CM_ SG_ 790 DTC_pressed "Traction control off. Message transmitted when pressed. Few presses may be required followed by off.";
 CM_ SG_ 790 setMe_0x3FFF "All ones";
 VAL_ 182 ST_TORQ_TAR_DSC 0 "no intervention" 1 "ASR intervention - increase torque" 2 "MSR intervention - decrease torque" 3 "signal invalid";
+VAL_ 183 ST_TORQ_TAR_ACC 0 "no intervention" 1 "increase torque" 2 "signal invalid" 3 "signal invalid";
+VAL_ 183 RQ_PREV_INFS_ACC 0 "no request" 1 "request over-run-fuel-shutoff inhibition" 3 "signal invalid";
+VAL_ 183 ST_ACC_SWO_SYS_DME 1 "system off" 2 "system ok" 3 "signal invalid";
+VAL_ 183 ST_ACC_MOD_DME 0 "passive" 1 "standby" 2 "normal" 4 "brake active" 5 "driver has stepped over" 7 "signal invalid";
 VAL_ 408 ShifterPosition 1 "D" 2 "S" 3 "N" 4 "R" 5 "P";
 VAL_ 464 ST_ENG_RUN 3 "signal invalid" 2 "engine running" 1 "engine starting" 0 "engine off";
 VAL_ 464 ST_SW_WAUP 3 "signal invalid" 2 "EGS forced switching active" 1 "engine warm" 0 "warming up";
