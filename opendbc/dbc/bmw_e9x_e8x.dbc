@@ -37,6 +37,8 @@ BU_: EON RDC SZL VGSG JBBF RFK FLA RAD1 CAS CID AHM HKL HUD EKP DWA DSC SM_BF GW
 CM_ "Source <https://github.com/dzid26/opendbc-BMW-E8x-E9x>";
 CM_ "Some data copied from https://github.com/HeinrichG-V12/E65_ReverseEngineering/ and MSD81 document"
 CM_ "Tool32 reference https://www.bimmerforums.com/forum/showthread.php?2298830-E90-Can-bus-project-(E60-E65-E87-)&p=29628499#post29628499"
+CM_ "Some data copied from great MK60e5_Development_DBC.dbc: https://www.m5board.com/posts/7693749/"
+
 CM_ "License MIT";
 
 BO_ 128 SYNC: 5 XXX
@@ -127,7 +129,10 @@ BO_ 183 Torque_request_ACC: 6 LDM
 
 BO_ 184 Torque_request_DCT: 8 DKG
  SG_ Checksum_0xb8 : 0|8@1+ (1,0) [0|255] "" DME
- SG_ Counter_0xb8 : 8|4@1+ (1,0) [0|15] "" DME
+ SG_ Counter_0xb8 : 8|4@1+ (1,0) [0|14] "" DME
+ SG_ TORQ_TAR_DKG : 12|12@1- (0.5,0) [-1024|1023.5] "Nm" DME
+ SG_ TORQ_TAR_ADJR_POS_DKG : 24|12@1- (0.5,0) [-1024|1023.5] "Nm" DME
+ SG_ TORQ_CLT_DKG : 36|12@1- (1,0) [0|0] "" DME
 
 BO_ 185 Torque_request_AFS: 8 AFS
 
@@ -929,6 +934,7 @@ CM_ SG_ 168 BrakePressed "Brake when driver presses the brake or hill hold";
 CM_ SG_ 170 AcceleratorPedalPercentage "ToDo Factor to be adjusted";
 CM_ SG_ 170 ThrottlelActive "Active in cruise control when engine braking";
 CM_ SG_ 170 AcceleratorPedalPressed "Active only when driver actually presses the pedal";
+CM_ SG_ 181 TORQ_TAR_EGS "torque target (fast)";
 CM_ SG_ 181 ST_OTMP_GRB "overtemperature gearbox status";
 CM_ SG_ 181 ST_OBD_GRB "status OBD_error gearbox";
 CM_ SG_ 181 ST_LIM_STORQ "starting torque limitation status";
@@ -940,6 +946,8 @@ CM_ SG_ 182 TORQ_TAR_ADJR_POS_DSC "torque target (slow)";
 CM_ BO_ 183 "ACC or LDM - active cruise control torque request";
 CM_ SG_ 183 TORQ_TAR_ACC "torque target (fast)";
 CM_ SG_ 183 TORQ_TAR_ADJR_POS_DSC "torque target (slow)";
+CM_ SG_ 184 TORQ_TAR_DKG "torque target (fast)";
+CM_ SG_ 184 TORQ_TAR_ADJR_POS_DKG "torque target (slow)";
 CM_ SG_ 186 GearTar "Values corresponds to forward gears. TBD Add enums for park, reverse";
 CM_ SG_ 403 CruiseControlSetpointSpeed "Speed target - unit depends on locale";
 CM_ SG_ 404 Counter_0x194 "Message is sent at higher rate when cruise stalk is pressed";
