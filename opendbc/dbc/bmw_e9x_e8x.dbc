@@ -152,10 +152,15 @@ BO_ 189 Torque_request_SSG: 8 SMG
 
 BO_ 190 Alive_Counter: 8 ARS
 
-BO_ 191 RequestedWheelTorqueDriveTrain: 5 LDM
+BO_ 191 RequestedWheelTorqueDriveTrain: 5 DSC_LDM
  SG_ Checksum_0xbf : 0|8@1+ (1,0) [0|255] "" DME
  SG_ Counter_0xbf : 8|4@1- (1,0) [0|15] "" DME
- SG_ TorqueReq : 16|12@1- (0.5,350) [-1024|1023.96875] "" DME
+ SG_ STATE_DI_PUC : 12|1@1+ (1,0) [0|1] "" XXX
+ SG_ STATE_SP_DYN_WHEEL : 13|3@1+ (1,0) [0|7] "" XXX
+ SG_ WMOM_PT_TAR : 16|16@1+ (1,-32000) [-32000|32000] "Nm" DME
+ SG_ ST_DRASY_PT : 32|4@1+ (1,0) [0|15] "" DME
+ SG_ WMOM_PT_ENBL : 36|2@1+ (1,0) [0|3] "" DME
+ SG_ RQ_GSI_CLCTR_LN : 38|2@1+ (1,0) [0|3] "" DME
 
 BO_ 192 Alive_Central_Gateway: 8 JBBF
 
@@ -949,6 +954,13 @@ CM_ SG_ 183 TORQ_TAR_ADJR_POS_DSC "torque target (slow)";
 CM_ SG_ 184 TORQ_TAR_DKG "torque target (fast)";
 CM_ SG_ 184 TORQ_TAR_ADJR_POS_DKG "torque target (slow)";
 CM_ SG_ 186 GearTar "Values corresponds to forward gears. TBD Add enums for park, reverse";
+CM_ BO_ 191 "Sent by DSC or LDM (ACC option)";
+CM_ SG_ 191 STATE_DI_PUC "FOLDYN_WMOM_PT_TAR: request_prevention_inertia-fuel-shutof";
+CM_ SG_ 191 STATE_SP_DYN_WHEEL "state follow dynamic from FOLDYN_WMOM_PT_TAR";
+CM_ SG_ 191 WMOM_PT_TAR "Wheel torque request";
+CM_ SG_ 191 ST_DRASY_PT "powertrain driver assistance system status";
+CM_ SG_ 191 WMOM_PT_ENBL "wheel torque request enabled";
+CM_ SG_ 191 RQ_GSI_CLCTR_LN "request gear shift indicator";
 CM_ SG_ 403 CruiseControlSetpointSpeed "Speed target - unit depends on locale";
 CM_ SG_ 404 Counter_0x194 "Message is sent at higher rate when cruise stalk is pressed";
 CM_ SG_ 404 plus1 "Appears when +1mph/kph stalk is depressed";
@@ -994,6 +1006,12 @@ VAL_ 183 ST_TORQ_TAR_ACC 0 "no intervention" 1 "increase torque" 2 "signal inval
 VAL_ 183 RQ_PREV_INFS_ACC 0 "no request" 1 "request over-run-fuel-shutoff inhibition" 3 "signal invalid";
 VAL_ 183 ST_ACC_SWO_SYS_DME 1 "system off" 2 "system ok" 3 "signal invalid";
 VAL_ 183 ST_ACC_MOD_DME 0 "passive" 1 "standby" 2 "normal" 4 "brake active" 5 "driver has stepped over" 7 "signal invalid";
+VAL_ 191 STATE_DI_PUC 0 "allow fuel-shutoff" 1 "inhibit fuel-shutoff";
+VAL_ 191 STATE_SP_DYN_WHEEL 0 "no request" 4 "follow torque request" 5 "fast torque adjustment" 6 "fast torque adjustment" 7 "invalid";
+VAL_ 191 WMOM_PT_TAR 65535 "off";
+VAL_ 191 ST_DRASY_PT 0 "no request" 1 "comfort" 3 "aggressive" 4 "driver kicks-in" 15 "error";
+VAL_ 191 WMOM_PT_ENBL 0 "no request" 1 "request torque intervention" 3 "signal invalid";
+VAL_ 191 RQ_GSI_CLCTR_LN 0 "no request" 1 "request gear shift indicator" 3 "unavailable";
 VAL_ 408 ShifterPosition 1 "D" 2 "S" 3 "N" 4 "R" 5 "P";
 VAL_ 464 ST_ENG_RUN 3 "signal invalid" 2 "engine running" 1 "engine starting" 0 "engine off";
 VAL_ 464 ST_SW_WAUP 3 "signal invalid" 2 "EGS forced switching active" 1 "engine warm" 0 "warming up";
