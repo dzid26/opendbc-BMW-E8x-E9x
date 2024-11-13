@@ -118,7 +118,7 @@ BO_ 182 Torque_request_DSC: 5 DSC
 BO_ 183 Torque_request_ACC: 6 LDM
  SG_ Checksum_0xb7 : 0|8@1+ (1,0) [0|255] "" DME
  SG_ Counter_0xb7 : 8|4@1+ (1,0) [0|14] "" DME
- SG_ TORQ_TAR_DSC : 12|12@1- (0.5,0) [1024|1023.5] "Nm" DME
+ SG_ TORQ_TAR_ACC : 12|12@1- (0.5,0) [1024|1023.5] "Nm" DME
  SG_ TORQ_TAR_ADJR_POS_DSC : 24|12@1- (0.5,0) [1024|1023.5] "Nm" DME
  SG_ ST_TORQ_TAR_ACC : 36|2@1+ (1,0) [0|3] "" DME
  SG_ RQ_PREV_INFS_ACC : 38|2@1+ (1,0) [0|3] "" DME
@@ -938,6 +938,8 @@ CM_ BO_ 182 "Tranction control and dynamic cruise control torque requests (Dynam
 CM_ SG_ 182 TORQ_TAR_DSC "torque target (fast)";
 CM_ SG_ 182 TORQ_TAR_ADJR_POS_DSC "torque target (slow)";
 CM_ BO_ 183 "ACC or LDM - active cruise control torque request";
+CM_ SG_ 183 TORQ_TAR_ACC "torque target (fast)";
+CM_ SG_ 183 TORQ_TAR_ADJR_POS_DSC "torque target (slow)";
 CM_ SG_ 186 GearTar "Values corresponds to forward gears. TBD Add enums for park, reverse";
 CM_ SG_ 403 CruiseControlSetpointSpeed "Speed target - unit depends on locale";
 CM_ SG_ 404 Counter_0x194 "Message is sent at higher rate when cruise stalk is pressed";
