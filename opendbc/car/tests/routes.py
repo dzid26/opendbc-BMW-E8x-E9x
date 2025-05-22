@@ -15,6 +15,7 @@ from opendbc.car.toyota.values import CAR as TOYOTA
 from opendbc.car.values import Platform
 from opendbc.car.volkswagen.values import CAR as VOLKSWAGEN
 from opendbc.car.body.values import CAR as COMMA
+from opendbc.car.bmw.values import CAR as BMW
 
 # FIXME: add routes for these cars
 non_tested_cars = [
@@ -39,6 +40,9 @@ class CarTestRoute(NamedTuple):
 
 routes = [
   CarTestRoute("efdf9af95e71cd84|2022-05-13--19-03-31", COMMA.COMMA_BODY),
+
+  CarTestRoute("bd80d0fca0a57ddf/000001ba--7e04ade60d", BMW.BMW_E82),
+  CarTestRoute("01137e7011461a61/0000033f--e08f6bdd21", BMW.BMW_E90),
 
   CarTestRoute("0c94aa1e1296d7c6|2021-05-05--19-48-37", CHRYSLER.JEEP_GRAND_CHEROKEE),
   CarTestRoute("91dfedae61d7bd75|2021-05-22--20-07-52", CHRYSLER.JEEP_GRAND_CHEROKEE_2019),
