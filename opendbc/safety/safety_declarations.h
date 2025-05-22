@@ -296,3 +296,4 @@ extern const safety_hooks toyota_hooks;
 extern const safety_hooks volkswagen_mqb_hooks;
 extern const safety_hooks volkswagen_pq_hooks;
 extern const safety_hooks rivian_hooks;
+extern const safety_hooks bmw_hooks;
