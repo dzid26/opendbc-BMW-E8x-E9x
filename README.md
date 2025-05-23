@@ -1,3 +1,29 @@
+BMW network overview:
+=====
+BMW fork for of opendbc mainly created for openpilot development (so things like steering angle, speed, buttons were of a biggest interest).
+BMW E-series have 4 CAN buses:
+
+**D-CAN** - [500kbps] - diagnostic CAN - this is in OBD2 port and can be used with "K+DCAN cable" for flashing etc
+
+**F-CAN** - [500kbps] - chasis CAN - things like SZL and DSC connected here - messages from steering and traction control (accelerometers, gyros, steering angle, etc)
+**PT-CAN** - [500kbps] - powertrain CAN - engine and transmission, etc. Some of messages from F-CAN are copied here by JBBF gateway
+
+**K-CAN** - [100kbps] - body CAN - so things like climate, radio, door status, buttons -  Some messages are copied from PT-CAN and F-CAN here too.
+
+Several message-IDs are repeated between buses by the gateway. Note, this DBC doesn't specify which bus contain which message. This could be added perhaps to message description.
+
+
+There is many points where K-CAN can be accessed in BMW. PT-CAN and K-CAN can be found in the corner of driver footwell. F-CAN can be found under doorstep trim. D-CAN on pin 6,14 of OBD2 port.
+
+
+
+opendbc
+======
+
+The project to democratize access to the decoder ring of your car.
+
+
+
 <div align="center" style="text-align: center;">
 
 <h1>opendbc</h1>
