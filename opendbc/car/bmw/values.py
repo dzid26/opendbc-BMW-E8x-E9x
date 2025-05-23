@@ -8,10 +8,10 @@ from opendbc.car.common.conversions import Conversions as CV
 # Steer torque limits
 class CarControllerParams: #controls running @ 100hz
   STEER_STEP = 1 # 100Hz
-  STEER_MAX = 12  # Nm
-  STEER_DELTA_UP = 10 / 100       # 10Nm/s
-  STEER_DELTA_DOWN = 1000 / 100     # 10Nm/sample - no limit
-  STEER_ERROR_MAX = 999     # max delta between torque cmd and torque motor
+  TORQUE_MAX = 12  # Nm
+  TORQUE_DELTA_UP = 10 / 100       # 10Nm/s
+  TORQUE_DELTA_DOWN = 1000 / 100     # 10Nm/sample - no limit
+  TORQUE_ERROR_MAX = 999     # max delta between torque cmd and torque motor
 
   # STEER_BACKLASH = 1 #deg
   def __init__(self, CP):
