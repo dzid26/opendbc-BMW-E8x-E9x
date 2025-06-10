@@ -1,6 +1,7 @@
 from cereal import car
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
+from opendbc.car import Bus, create_button_events, structs
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.interfaces import CarStateBase
 from opendbc.car.bmw.values import DBC, CanBus, BmwFlags, CruiseSettings
@@ -32,7 +33,13 @@ class CarState(CarStateBase):
     self.prev_gas_pressed = False
     self.dtc_mode = False
 
-  def update(self, cp_PT, cp_F, cp_aux):
+  def update(self, can_parsers) -> structs.CarState:
+    cp_PT = can_parsers[Bus.pt]
+    cp_F = can_parsers[Bus.body]
+    cp_aux = can_parsers[Bus.alt]
+
+    ret = structs.CarState()
+
     # set these prev states at the beginning because they are used outside the update()
     self.prev_cruise_stalk_speed = self.cruise_stalk_speed
     self.prev_cruise_stalk_resume = self.cruise_stalk_resume
@@ -135,8 +142,8 @@ class CarState(CarStateBase):
     return ret
 
   @staticmethod
-  def get_can_parser(CP): #PT-CAN
-    messages = [ # message, frequency
+  def get_can_parsers(CP):
+    pt_messages = [ # message, expected frequency
       ("EngineAndBrake", 100),
       ("TransmissionDataDisplay", 5),
       ("AccPedal", 100),
@@ -152,30 +159,32 @@ class CarState(CarStateBase):
     ]
 
     if CP.flags & BmwFlags.DYNAMIC_CRUISE_CONTROL:
-      messages.append(("DynamicCruiseControlStatus", 5))
-    if CP.flags & BmwFlags.NORMAL_CRUISE_CONTROL:
-      messages.append(("CruiseControlStatus", 5))
-
-    return CANParser(DBC[CP.carFingerprint]['pt'], messages, CanBus.PT_CAN)  # 0: PT-CAN
-
-  @staticmethod # $540 vehicle option could use just PT_CAN, but $544 requires sending and receiving cruise commands on F-CAN. Use F-can. Works for both options
-  def get_F_can_parser(CP):
-    if CP.flags & BmwFlags.DYNAMIC_CRUISE_CONTROL:
-      messages = [ # message, frequency
-      ("SteeringWheelAngle_DSC", 100),
-      ("CruiseControlStalk",  5),
+      pt_messages += [
+        ("DynamicCruiseControlStatus", 5),
       ]
-    else:
-      messages = []
+    if CP.flags & BmwFlags.NORMAL_CRUISE_CONTROL:
+      pt_messages += [
+        ("CruiseControlStatus", 5),
+      ]
 
-    return CANParser(DBC[CP.carFingerprint]['pt'], messages, CanBus.F_CAN)
 
-  @staticmethod
-  def get_actuator_can_parser(CP):
+    # $540 vehicle option could use just PT_CAN, but $544 requires sending and receiving cruise commands on F-CAN. Use F-can. Works for both options
+    fcan_messages = []
+    if CP.flags & BmwFlags.DYNAMIC_CRUISE_CONTROL:
+      fcan_messages += [ # message, expected frequency
+        ("CruiseControlStalk", 5),
+        ("SteeringWheelAngle_DSC", 100),
+      ]
+
+    # if the car is equipped with custom actuator
+    servo_can_messages = []
     if CP.flags & BmwFlags.STEPPER_SERVO_CAN:
-      messages = [ # message, frequency
+      servo_can_messages += [ # message, expected frequency
       ("STEERING_STATUS", 100),
       ]
-    else:
-      messages = []
-    return CANParser('ocelot_controls', messages, CanBus.SERVO_CAN)
+
+    return {
+      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], pt_messages, CanBus.PT_CAN),
+      Bus.body: CANParser(DBC[CP.carFingerprint][Bus.pt], fcan_messages, CanBus.F_CAN),
+      Bus.alt: CANParser('ocelot_controls', servo_can_messages, CanBus.SERVO_CAN),
+    }

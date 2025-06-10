@@ -1,4 +1,4 @@
-from openpilot.selfdrive.car.bmw.values import CAR
+from opendbc.car.bmw.values import CAR
 
 BMW_E8x_E9x_common_per_bus = {
   "PT-CAN": {

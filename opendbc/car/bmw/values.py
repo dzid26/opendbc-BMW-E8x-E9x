@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum, IntFlag
 from cereal import car
-from opendbc.car import Platforms, CarSpecs, PlatformConfig, dbc_dict, DbcDict, STD_CARGO_KG
+from opendbc.car import Bus, Platforms, CarSpecs, PlatformConfig, DbcDict, STD_CARGO_KG
 from opendbc.car.docs_definitions import CarFootnote, CarHarness, CarDocs, CarParts, Column
 from opendbc.car.common.conversions import Conversions as CV
 
@@ -64,8 +64,11 @@ class BmwCarDocs(CarDocs):
 
 @dataclass
 class BmwPlatformConfig(PlatformConfig):
-  dbc_dict: DbcDict = field(default_factory=lambda: dbc_dict('bmw_e9x_e8x', None))
-
+  dbc_dict: DbcDict = field(default_factory=lambda: {
+    Bus.pt: 'bmw_e9x_e8x',
+    Bus.chassis: 'bmw_e9x_e8x',
+    Bus.body: 'bmw_e9x_e8x',
+    })
 
 class CAR(Platforms):
   BMW_E82 = BmwPlatformConfig(

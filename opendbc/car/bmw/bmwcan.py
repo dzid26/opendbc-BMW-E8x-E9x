@@ -1,6 +1,6 @@
 from enum import Enum
 from opendbc.can.packer import CANPacker
-from openpilot.selfdrive.car.bmw.values import CanBus
+from opendbc.car.bmw.values import CanBus
 
 class SteeringModes(Enum):
   Off = 0

@@ -1,5 +1,5 @@
 from cereal import car
-from opendbc.car import DT_CTRL, apply_dist_to_meas_limits, apply_hysteresis
+from opendbc.car import Bus, DT_CTRL, apply_dist_to_meas_limits, apply_hysteresis
 from opendbc.car.bmw import bmwcan
 from opendbc.car.bmw.bmwcan import SteeringModes, CruiseStalk
 from opendbc.car.bmw.values import CarControllerParams, CanBus, BmwFlags
@@ -35,7 +35,7 @@ class CarController(CarControllerBase):
     self.cruise_cancel = False  # local cruise control cancel
     self.cruise_enabled_prev = False
     # redundant safety check with the board
-    self.apply_steer_last = 0
+    self.apply_torque_last = 0
     self.last_cruise_rx_timestamp = 0 # stock cruise buttons
     self.last_cruise_tx_timestamp = 0 # openpilot commands
     self.tx_cruise_stalk_counter_last = 0
@@ -49,8 +49,7 @@ class CarController(CarControllerBase):
     if CP.flags & BmwFlags.DYNAMIC_CRUISE_CONTROL:
       self.cruise_bus = CanBus.F_CAN
 
-
-    self.packer = CANPacker(dbc_name)
+    self.packer = CANPacker(dbc_name[Bus.pt])
 
 
   def update(self, CC, CS, now_nanos):
