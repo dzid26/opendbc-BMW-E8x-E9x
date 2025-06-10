@@ -1,9 +1,11 @@
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
-from opendbc.car import Bus, structs
+from opendbc.car import Bus, structs, create_button_events
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.interfaces import CarStateBase
 from opendbc.car.bmw.values import DBC, CanBus, BmwFlags, CruiseSettings
+
+ButtonType = structs.CarState.ButtonEvent.Type
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -128,6 +130,22 @@ class CarState(CarStateBase):
     self.cruise_stalk_cancel_dn = self.cruise_stalk_cancel and not self.cruise_stalk_cancel_up
 
 
+    # *** cruise control units one-time detection ***
+    # when cruise is enabled the car sets cruiseState.speed = vEgo, so we can detect the ratio
+    # with resume this wouldn't work, but op will not engage on first resume anyway
+    if self.is_metric is None and ret.cruiseState.enabled and ret.vEgo > 5:
+      # note, when is_metric is None, cruiseState.speed is already scaled by CV.MPH_TO_MS by default
+      speed_ratio = ret.cruiseState.speed / ret.vEgo  # 1 if imperial, 1.6 if metric
+      if 0.8 < speed_ratio < 1.2:
+        self.is_metric = False
+      elif 0.8 * CV.MPH_TO_KPH < speed_ratio < 1.2 * CV.MPH_TO_KPH:
+        self.is_metric = True
+        # update speed if metric
+        ret.cruiseState.speed = ret.cruiseState.speed * CV.KPH_TO_MS
+      else:
+        ret.accFaulted = True
+
+
     ret.genericToggle = self.dtc_mode
 
     if self.CP.flags & BmwFlags.STEPPER_SERVO_CAN:
@@ -136,6 +154,17 @@ class CarState(CarStateBase):
       ret.steerFaultTemporary = int(cp_aux.vl['STEERING_STATUS']['CONTROL_STATUS']) & 0x4 != 0
 
     self.prev_gas_pressed = ret.gasPressed
+
+
+    ret.buttonEvents = [
+      *create_button_events(self.cruise_stalk_speed > 0, self.prev_cruise_stalk_speed > 0, {1: ButtonType.accelCruise}),
+      *create_button_events(self.cruise_stalk_speed < 0, self.prev_cruise_stalk_speed < 0, {1: ButtonType.decelCruise}),
+      *create_button_events(self.cruise_stalk_cancel, self.prev_cruise_stalk_cancel, {1: ButtonType.cancel}),
+      *create_button_events(self.other_buttons, not self.other_buttons, {1: ButtonType.altButton2}),
+      *create_button_events(self.cruise_stalk_resume, self.prev_cruise_stalk_resume, {
+        # repurpose resume button to adjust driver personality when engaged, else just resume
+        1: ButtonType.resumeCruise if not ret.cruiseState.enabled else ButtonType.gapAdjustCruise})
+      ]
     return ret
 
   @staticmethod
