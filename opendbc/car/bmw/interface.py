@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
-from cereal import car, log
-from opendbc.car import structs, create_button_events
+from opendbc.car import structs
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car import get_safety_config
 from opendbc.car.bmw.values import CanBus, BmwFlags, CarControllerParams
@@ -10,7 +9,6 @@ from opendbc.car.bmw.carcontroller import CarController
 from opendbc.car.bmw.carstate import CarState
 
 ButtonType = structs.CarState.ButtonEvent.Type
-EventName = log.OnroadEvent.EventName
 TransmissionType = structs.CarParams.TransmissionType
 GearShifter = structs.CarState.GearShifter
 
@@ -104,17 +102,17 @@ class CarInterface(CarInterfaceBase):
     if ret.flags & BmwFlags.NORMAL_CRUISE_CONTROL:
       ret.minEnableSpeed = 30. * CV.KPH_TO_MS
 
-    ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.bmw)]
+    ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.bmw)]
     ret.safetyConfigs[0].safetyParam = 0
 
-    ret.steerControlType = car.CarParams.SteerControlType.torque
+    ret.steerControlType = structs.CarParams.SteerControlType.torque
     ret.steerActuatorDelay = 0.4
     ret.steerLimitTimer = 0.4
 
     CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
-    ret.lateralTuning.torque.kp = 1.5 / CarControllerParams.TORQUE_MAX
-    ret.lateralTuning.torque.ki = 0.5 / CarControllerParams.TORQUE_MAX
-    ret.lateralTuning.torque.kf = 5.0 / CarControllerParams.TORQUE_MAX
+    ret.lateralTuning.torque.kp = 1.5 / CarControllerParams.STEER_MAX
+    ret.lateralTuning.torque.ki = 0.5 / CarControllerParams.STEER_MAX
+    ret.lateralTuning.torque.kf = 5.0 / CarControllerParams.STEER_MAX
     ret.lateralTuning.torque.friction = 0.23 #live parameters
     ret.lateralTuning.torque.latAccelFactor = 1.41 #live parameters
     ret.lateralTuning.torque.useSteeringAngle = False

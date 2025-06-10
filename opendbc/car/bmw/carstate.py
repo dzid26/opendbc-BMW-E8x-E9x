@@ -1,7 +1,6 @@
-from cereal import car
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
-from opendbc.car import Bus, create_button_events, structs
+from opendbc.car import Bus, structs
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.interfaces import CarStateBase
 from opendbc.car.bmw.values import DBC, CanBus, BmwFlags, CruiseSettings
@@ -44,8 +43,6 @@ class CarState(CarStateBase):
     self.prev_cruise_stalk_speed = self.cruise_stalk_speed
     self.prev_cruise_stalk_resume = self.cruise_stalk_resume
     self.prev_cruise_stalk_cancel = self.cruise_stalk_cancel
-
-    ret = car.CarState.new_message()
 
     ret.doorOpen = False # not any([cp.vl["SEATS_DOORS"]['DOOR_OPEN_FL'], cp.vl["SEATS_DOORS"]['DOOR_OPEN_FR']
     ret.seatbeltUnlatched = False # not cp.vl["SEATS_DOORS"]['SEATBELT_DRIVER_UNLATCHED']

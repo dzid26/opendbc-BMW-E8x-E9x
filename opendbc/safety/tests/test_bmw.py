@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import unittest
 import numpy as np
-from panda import Panda
+from opendbc.car.structs import CarParams
 from panda.tests.libpanda import libpanda_py
-import panda.tests.safety.common as common
-from panda.tests.safety.common import make_msg
+import opendbc.safety.tests.common as common
 
 MS_TO_KPH = 3.6
 SAMPLING_FREQ = 100 #Hz
@@ -44,14 +43,14 @@ def sign(a):
 
 
 
-class TestBmwSafety(unittest.TestCase):
+class TestBmwSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafetyTest):
   def setUp(self):
     self.safety = libpanda_py.libpanda
-    self.safety.set_safety_hooks(Panda.SAFETY_BMW, 0)
+    self.safety.set_safety_hooks(CarParams.SafetyModel.bmw, 0)
     self.safety.init_tests()
 
   def _angle_meas_msg(self, angle, angle_rate):
-    to_send = make_msg(0, 0xc4, 7)
+    to_send = common.make_msg(0, 0xc4, 7)
 
     angle_int = int(angle / CAN_BMW_ANGLE_FAC)
     angle_t = twos_comp(angle_int, 16) # signed
@@ -71,7 +70,7 @@ class TestBmwSafety(unittest.TestCase):
 
   def _actuator_angle_cmd_msg(self, mode, torque_req, angle_delta):
 
-    to_send = make_msg(2, 558)
+    to_send = common.make_msg(2, 558)
 
     cnt = 0
 
@@ -88,20 +87,20 @@ class TestBmwSafety(unittest.TestCase):
 
 
   def _speed_msg(self, speed):
-    to_send = make_msg(0, 0x1a0)
+    to_send = common.make_msg(0, 0x1a0)
     speed = int(speed / CAN_BMW_SPEED_FAC)
     to_send[0].RDLR = (speed & 0xFFF)
 
     return to_send
 
   def _brake_msg(self, brake):
-    to_send = make_msg(0, 168)
+    to_send = common.make_msg(0, 168)
     to_send[0].RDHR = (brake * 0x3) << (61-32)
 
     return to_send
 
   def _cruise_button_msg(self, buttons_bitwise): #todo: read creuisesate
-    to_send = make_msg(0, 404, 4)
+    to_send = common.make_msg(0, 404, 4)
     const_0xFC = 0xFC
     buttons_bitwise = buttons_bitwise & 0xFF
     if (buttons_bitwise != 0): #if any button pressed

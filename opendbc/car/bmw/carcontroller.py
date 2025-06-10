@@ -1,4 +1,3 @@
-from cereal import car
 from opendbc.car import Bus, DT_CTRL, apply_dist_to_meas_limits, apply_hysteresis
 from opendbc.car.bmw import bmwcan
 from opendbc.car.bmw.bmwcan import SteeringModes, CruiseStalk
@@ -7,7 +6,6 @@ from opendbc.car.interfaces import CarControllerBase
 from opendbc.can.packer import CANPacker
 from opendbc.car.common.conversions import Conversions as CV
 
-VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 # DO NOT CHANGE: Cruise control step size
 CC_STEP = 1 # cruise single click jump - always 1 - interpreted as km or miles depending on DSC or DME set units
@@ -160,11 +158,11 @@ class CarController(CarControllerBase):
       if not steer_error: # don't send steer CAN tx if steering is unavailable
         # *** apply steering torque ***
         if CC.enabled:
-          new_steer = actuators.torque * CarControllerParams.TORQUE_MAX
+          new_steer = actuators.torque * CarControllerParams.STEER_MAX
           # explicitly clip torque before sending on CAN
           apply_torque = apply_dist_to_meas_limits(new_steer, self.apply_torque_last, CS.out.steeringTorqueEps,
-                                             CarControllerParams.TORQUE_DELTA_UP, CarControllerParams.TORQUE_DELTA_DOWN,
-                                             CarControllerParams.TORQUE_ERROR_MAX, CarControllerParams.TORQUE_MAX)
+                                             CarControllerParams.STEER_DELTA_UP, CarControllerParams.STEER_DELTA_DOWN,
+                                             CarControllerParams.STEER_ERROR_MAX, CarControllerParams.STEER_MAX)
           can_sends.append(bmwcan.create_steer_command(self.frame, SteeringModes.TorqueControl, apply_torque))
         elif not CS.cruise_stalk_cancel and not CS.out.brakePressed and not CS.out.gasPressed and self.apply_torque_last != 0:
           can_sends.append(bmwcan.create_steer_command(self.frame, SteeringModes.SoftOff, self.apply_torque_last))
@@ -182,7 +180,7 @@ class CarController(CarControllerBase):
     self.cruise_enabled_prev = CC.enabled
 
     new_actuators = actuators.as_builder()
-    new_actuators.torque = self.apply_torque_last / CarControllerParams.TORQUE_MAX
+    new_actuators.torque = self.apply_torque_last / CarControllerParams.STEER_MAX
     new_actuators.torqueOutputCan = self.apply_torque_last
 
     new_actuators.speed = self.calc_desired_speed
