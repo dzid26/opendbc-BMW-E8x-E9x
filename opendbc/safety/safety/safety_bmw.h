@@ -214,6 +214,8 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
   if (addr == BMW_AccPedal) {
     gas_pressed = (GET_BYTE(to_push, 6) & 0x30U) != 0U;
   }
+
+  generic_rx_checks(false);
 }
 
 static bool bmw_tx_hook(const CANPacket_t *to_send) {
