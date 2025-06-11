@@ -265,7 +265,8 @@ BO_ 402 GearSelectorSwitch_1: 4 XXX
  SG_ Counter_0x192 : 24|4@1+ (1,0) [0|14] "" XXX
 
 BO_ 403 DynamicCruiseControlStatus: 8 DSC
- SG_ Counter_0x193 : 7|8@0+ (1,0) [0|15] "" XXX
+ SG_ Checksum_0x193 : 0|4@1+ (1,0) [0|15] "" XXX
+ SG_ Counter_0x193 : 7|4@0+ (1,0) [0|15] "" XXX
  SG_ CruiseControlSetpointSpeed : 15|8@0+ (1,-2) [0|255] "kph/mph" XXX
  SG_ CruiseActive : 43|1@0+ (1,0) [0|1] "" XXX
  SG_ CruiseSpeedChangeRequest : 48|1@0+ (1,0) [0|1] "" XXX

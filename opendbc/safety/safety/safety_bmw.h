@@ -38,11 +38,12 @@ RxCheck bmw_rx_checks[] = {  // todo add .check_checksum
   {.msg = {{BMW_EngineAndBrake,       BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 100U, .ignore_checksum = true}, { 0 }, { 0 }}},
   {.msg = {{BMW_AccPedal,             BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 100U, .ignore_checksum = true}, { 0 }, { 0 }}},
   {.msg = {{BMW_Speed,                BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 50U, .ignore_checksum = true}, { 0 }, { 0 }}},
-  {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .max_counter = 0U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
-  {.msg = {{BMW_TransmissionDataDisplay,   BMW_PT_CAN, 6, .max_counter = 14U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
+  // {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .ignore_counter = true, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}}, // todo if uesed, maybe add to bmw_get_counter
+  {.msg = {{BMW_TransmissionDataDisplay,    BMW_PT_CAN, 6, .max_counter = 14U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
+  {.msg = {{BMW_DynamicCruiseControlStatus, BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 5U, .ignore_checksum = true},
+           {BMW_CruiseControlStatus,  BMW_PT_CAN, 8, .ignore_counter = true, .frequency = 5U, .ignore_checksum = true}, { 0 }}},
+  // {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .max_counter = 0U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
   // todo cruise control type dependant, use param:
-  // {.msg = {{BMW_CruiseControlStatus,  BMW_PT_CAN, 8, .frequency = 5U}, { 0 }, { 0 }}},
-  // {.msg = {{BMW_DynamicCruiseControlStatus,  BMW_F_CAN, 7, .frequency = 5U}, { 0 }, { 0 }}},
   // {.msg = {{0x22f,  BMW_F_CAN, 8, .frequency = 100U}, { 0 }, { 0 }}},
   // {.msg = {{0x22f,  BMW_AUX_CAN, 8, .frequency = 100U}, { 0 }, { 0 }}},
 };
@@ -51,7 +52,9 @@ RxCheck bmw_rx_checks[] = {  // todo add .check_checksum
 static uint8_t bmw_get_counter(const CANPacket_t *to_push) {
   uint8_t cnt = 0;
   int addr = GET_ADDR(to_push);
-  if (addr == BMW_TransmissionDataDisplay) {
+  if (addr == BMW_DynamicCruiseControlStatus) {
+    cnt = (GET_BYTE(to_push, 0) >> 4) & 0xFU;
+  } else if (addr == BMW_TransmissionDataDisplay) {
     cnt = (GET_BYTE(to_push, 3) >> 4) & 0xFU;
   } else if (addr == BMW_Speed) {
     cnt = (GET_BYTE(to_push, 6) >> 4) & 0xFU;
@@ -111,8 +114,6 @@ float angle_rate_up = 0;
 float angle_rate_down = 0;
 float bmw_max_angle = 0;
 float max_tq_rate = 0;
-
-int bmw_controls_allowed_last = 0;
 
 int lever_position = -1; //0 is when no ignition, so -1 unset
 float bmw_speed = 0;
@@ -207,17 +208,12 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
 
   // exit controls on brake press
   if (addr == BMW_EngineAndBrake) {
-    // any of two bits at position 61 & 62
     brake_pressed = (GET_BYTE(to_push, 7) & 0x20U) != 0U;
   }
 
   if (addr == BMW_AccPedal) {
     gas_pressed = (GET_BYTE(to_push, 6) & 0x30U) != 0U;
   }
-
-  generic_rx_checks(false);
-
-  bmw_controls_allowed_last = controls_allowed;
 }
 
 static bool bmw_tx_hook(const CANPacket_t *to_send) {
