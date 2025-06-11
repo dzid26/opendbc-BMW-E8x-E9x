@@ -124,7 +124,7 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
   int addr = GET_ADDR(to_push);
   int bus = GET_BUS(to_push);
 
-  static bool cruise_engaged = false;
+  bool cruise_engaged = false;
   if ((addr == BMW_DynamicCruiseControlStatus) || (addr == BMW_CruiseControlStatus)) { //handles both vehicle options VO544 and Vo540
     if (addr == BMW_DynamicCruiseControlStatus) { //dynamic cruise control
       cruise_engaged = (((GET_BYTE(to_push, 5) >> 3) & 0x1U) == 1U);
@@ -183,7 +183,7 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
   }
 
   //get latest steering wheel angle rate
-  if ((addr == BMW_SteeringWheelAngle_slow) && (bus == BMW_PT_CAN)) {
+  if (addr == BMW_SteeringWheelAngle_slow) {
     float meas_angle = to_signed((GET_BYTE(to_push, 1) << 8) | GET_BYTE(to_push, 0), 16) * CAN_BMW_ANGLE_FAC; // deg
     // float angle_rate = to_signed((GET_BYTE(to_push, 4) << 8) | GET_BYTE(to_push, 3), 16) * CAN_BMW_ANGLE_FAC; // deg/s
     // // todo use common steer_angle_cmd_checks()
@@ -219,13 +219,13 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
 }
 
 static bool bmw_tx_hook(const CANPacket_t *to_send) {
-  const TorqueSteeringLimits BMW_STEERING_LIMITS = {
-    .max_torque = 350,
-    .max_rate_up = 3,
-    .max_rate_down = 5,
-    .max_rt_delta = 125,
-    .type = TorqueMotorLimited,
-  };
+  // const TorqueSteeringLimits BMW_STEERING_LIMITS = {
+  //   .max_torque = 350,
+  //   .max_rate_up = 3,
+  //   .max_rate_down = 5,
+  //   .max_rt_delta = 125,
+  //   .type = TorqueMotorLimited,
+  // };
 
   UNUSED(to_send);
 
@@ -237,8 +237,8 @@ static bool bmw_tx_hook(const CANPacket_t *to_send) {
   if (addr == 0x22e) {
     if (((GET_BYTE(to_send, 1) >> 4) & 0b11u) != 0x0){ //control enabled
       float steer_torque = ((float)(int8_t)(GET_BYTE(to_send, 4))) * CAN_ACTUATOR_TQ_FAC; //Nm
-      if (steer_torque_cmd_checks(steer_torque, -1, BMW_STEERING_LIMITS) ||
-          bmw_fmax_limit_check(steer_torque - actuator_torque, max_tq_rate, -max_tq_rate)) {
+      // if (steer_torque_cmd_checks(steer_torque, -1, BMW_STEERING_LIMITS)
+        if (bmw_fmax_limit_check(steer_torque - actuator_torque, max_tq_rate, -max_tq_rate)) {
         print("Violation torque rate");
         // printf("Tq: %f, ActTq: %f, Max: %f\n", steer_torque, actuator_torque, max_tq_rate);
         tx = false;
@@ -272,8 +272,7 @@ static bool bmw_tx_hook(const CANPacket_t *to_send) {
 }
 
 static safety_config bmw_init(uint16_t param) {
-  UNUSED(param); // todo param - differentiete rx/tx sets based on cruise control type
-  controls_allowed = false;
+  UNUSED(param);
   bmw_speed = 0;
   lever_position = -1;
 
