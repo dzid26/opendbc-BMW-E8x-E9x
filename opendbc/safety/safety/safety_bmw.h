@@ -41,11 +41,13 @@ RxCheck bmw_rx_checks[] = {  // todo add .check_checksum
   // {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .ignore_counter = true, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}}, // todo if uesed, maybe add to bmw_get_counter
   {.msg = {{BMW_TransmissionDataDisplay,    BMW_PT_CAN, 6, .max_counter = 14U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
   {.msg = {{BMW_DynamicCruiseControlStatus, BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 5U, .ignore_checksum = true},
-           {BMW_CruiseControlStatus,  BMW_PT_CAN, 8, .ignore_counter = true, .frequency = 5U, .ignore_checksum = true}, { 0 }}},
+           {BMW_CruiseControlStatus,  BMW_PT_CAN, 8, .ignore_counter = true, .frequency = 5U, .ignore_checksum = true},
+           { 0 }}},
   // {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .max_counter = 0U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
   // todo cruise control type dependant, use param:
-  // {.msg = {{0x22f,  BMW_F_CAN, 8, .frequency = 100U}, { 0 }, { 0 }}},
-  // {.msg = {{0x22f,  BMW_AUX_CAN, 8, .frequency = 100U}, { 0 }, { 0 }}},
+  {.msg = {{0x22f,  BMW_F_CAN, 8, .max_counter = 15U, .frequency = 100U, .ignore_checksum = true},
+           {0x22f,  BMW_AUX_CAN, 8, .max_counter = 15U, .frequency = 100U, .ignore_checksum = true},
+           { 0 }}},
 };
 
 
@@ -173,7 +175,8 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
 
   // STEPPER_SERVO_CAN: get STEERING_STATUS
   if ((addr == 0x22f) && ((bus == BMW_F_CAN) || (bus == BMW_AUX_CAN))) {
-    int torque_meas_new = ((float)(int8_t)(GET_BYTE(to_push, 2))); // torque raw
+    int torque_meas_new = ((int8_t)(GET_BYTE(to_push, 2))); // torque raw
+    actuator_torque = (float)torque_meas_new * CAN_ACTUATOR_TQ_FAC;
     update_sample(&torque_meas, torque_meas_new);
 
     if((((GET_BYTE(to_push, 1)>>4)>>CAN_ACTUATOR_CONTROL_STATUS_SOFTOFF_BIT) & 0x1) != 0x0){ //Soft off status means motor is shutting down due to error
@@ -235,17 +238,19 @@ static bool bmw_tx_hook(const CANPacket_t *to_send) {
   // STEPPER_SERVO_CAN: get STEERING_COMMAND
   // do not transmit CAN message if steering angle too high
   if (addr == 0x22e) {
-    if (((GET_BYTE(to_send, 1) >> 4) & 0b11u) != 0x0){ //control enabled
-      float steer_torque = ((float)(int8_t)(GET_BYTE(to_send, 4))) * CAN_ACTUATOR_TQ_FAC; //Nm
+    // Torque Control Mode:
+    if (((GET_BYTE(to_send, 1) >> 4) & 0b11u) != 0x0){
+      float steer_torque = ((float)(int8_t)(GET_BYTE(to_send, 4))) * CAN_ACTUATOR_TQ_FAC; // Nm
       // if (steer_torque_cmd_checks(steer_torque, -1, BMW_STEERING_LIMITS)
         if (bmw_fmax_limit_check(steer_torque - actuator_torque, max_tq_rate, -max_tq_rate)) {
-        print("Violation torque rate");
-        // printf("Tq: %f, ActTq: %f, Max: %f\n", steer_torque, actuator_torque, max_tq_rate);
+          print("Violation torque rate\n");
+        // puth((int)(steer_torque * 100));print(", "); puth((int)(actuator_torque * 100));print(", "); puth((int)(max_tq_rate * 100));print("\n");
         tx = false;
       }
     }
+    // Position Control Mode:
     float desired_angle = 0;
-    if (((GET_BYTE(to_send, 1) >> 4) & 0b11u) == 0x2){ //position control enabled
+    if (((GET_BYTE(to_send, 1) >> 4) & 0b11u) == 0x2){
       float angle_delta_req = ((float)(int16_t)((GET_BYTE(to_send, 2)) | (GET_BYTE(to_send, 3) << 8))) * CAN_ACTUATOR_POS_FAC; //deg/10ms
       desired_angle = bmw_rt_angle_last + angle_delta_req; //measured + requested delta
 
@@ -253,11 +258,11 @@ static bool bmw_tx_hook(const CANPacket_t *to_send) {
         bool violation = false;
         //check for max angles
         violation |= bmw_fmax_limit_check(desired_angle, bmw_max_angle, -bmw_max_angle);
-        print("Violation desired angle");
+        print("Violation desired angle\n");
         //angle is rate limited in carcontrols so it shouldn't exceed max delta
         float angle_delta_req_side = (bmw_desired_angle_last >= 0.) ? angle_delta_req : -angle_delta_req;
         violation |= bmw_fmax_limit_check(angle_delta_req_side, angle_rate_up, -angle_rate_down);
-        print("Violation  delta");
+        print("Violation  delta\n");
 
         if (violation) {
           tx = false;
