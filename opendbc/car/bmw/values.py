@@ -10,7 +10,7 @@ class CarControllerParams: #controls running @ 100hz
   STEER_STEP = 1 # 100Hz
   STEER_MAX = 12  # Nm
   STEER_DELTA_UP = 10 / 100       # 10Nm/s
-  STEER_DELTA_DOWN = 1000 / 100     # 10Nm/sample - no limit
+  STEER_DELTA_DOWN = 100 / 100     # 10Nm/sample - no limit
   STEER_ERROR_MAX = 999     # max delta between torque cmd and torque motor
 
   # STEER_BACKLASH = 1 #deg
