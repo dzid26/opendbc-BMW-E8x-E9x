@@ -282,6 +282,7 @@ static safety_config bmw_init(uint16_t param) {
   lever_position = -1;
 
   safety_config ret = BUILD_SAFETY_CFG(bmw_rx_checks, BMW_TX_MSGS);
+  ret.disable_forwarding = true;
 
 
   #ifdef ALLOW_DEBUG
