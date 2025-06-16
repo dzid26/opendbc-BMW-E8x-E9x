@@ -3,21 +3,6 @@
 #include "safety_declarations.h"
 static float interpolate(struct lookup_t xy, float x);
 
-#define BMW_LIMITS(steer, rate_up, rate_down) { \
-  .max_torque = (steer), \
-  .max_rate_up = (rate_up), \
-  .max_rate_down = (rate_down), \
-  .max_rt_delta = 112, \
-  .driver_torque_allowance = 50, \
-  .driver_torque_multiplier = 2, \
-  .type = TorqueDriverLimited, \
-   /* the EPS faults when the steering angle is above a certain threshold for too long. to prevent this, */ \
-   /* we allow setting CF_Lkas_ActToi bit to 0 while maintaining the requested torque value for two consecutive frames */ \
-  .min_valid_request_frames = 89, \
-  .max_invalid_request_frames = 2, \
-  .min_valid_request_rt_interval = 810000,  /* 810ms; a ~10% buffer on cutting every 90 frames */ \
-  .has_steer_req_tolerance = true, \
-}
 
 // CAN msgs we care about
 #define BMW_EngineAndBrake 0xA8
@@ -175,13 +160,13 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
 
   // STEPPER_SERVO_CAN: get STEERING_STATUS
   if ((addr == 0x22f) && ((bus == BMW_F_CAN) || (bus == BMW_AUX_CAN))) {
-    int torque_meas_new = ((int8_t)(GET_BYTE(to_push, 2))); // torque raw
+    int8_t torque_meas_new = ((int8_t)(GET_BYTE(to_push, 2))); // torque raw
     actuator_torque = (float)torque_meas_new * CAN_ACTUATOR_TQ_FAC;
     update_sample(&torque_meas, torque_meas_new);
 
     if((((GET_BYTE(to_push, 1)>>4)>>CAN_ACTUATOR_CONTROL_STATUS_SOFTOFF_BIT) & 0x1) != 0x0){ //Soft off status means motor is shutting down due to error
       controls_allowed = false;
-      print("BMW soft off\n");
+      // print("BMW soft off\n");
     }
   }
 
@@ -222,13 +207,14 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
 }
 
 static bool bmw_tx_hook(const CANPacket_t *to_send) {
-  // const TorqueSteeringLimits BMW_STEERING_LIMITS = {
-  //   .max_torque = 350,
-  //   .max_rate_up = 3,
-  //   .max_rate_down = 5,
-  //   .max_rt_delta = 125,
-  //   .type = TorqueMotorLimited,
-  // };
+  const TorqueSteeringLimits STEPPER_SERVO_LIMITS = {
+    .max_torque = (12.f / CAN_ACTUATOR_TQ_FAC),     // < 12Nm
+    .max_rate_up = 2,                               // <= 0.125Nm/10ms
+    .max_rate_down = (1.0f / CAN_ACTUATOR_TQ_FAC),  // < 1Nm/10ms
+    .max_rt_delta = (25.0f / CAN_ACTUATOR_TQ_FAC),  // 25Nm/250ms
+    .max_torque_error = (1.0f / CAN_ACTUATOR_TQ_FAC),  // 1Nm
+    .type = TorqueMotorLimited,
+  };
 
   UNUSED(to_send);
 
@@ -239,22 +225,23 @@ static bool bmw_tx_hook(const CANPacket_t *to_send) {
   // do not transmit CAN message if steering angle too high
   if (addr == 0x22e) {
     // Torque Control Mode:
-    if (((GET_BYTE(to_send, 1) >> 4) & 0b11u) != 0x0){
-      float steer_torque = ((float)(int8_t)(GET_BYTE(to_send, 4))) * CAN_ACTUATOR_TQ_FAC; // Nm
-      // if (steer_torque_cmd_checks(steer_torque, -1, BMW_STEERING_LIMITS)
-        if (bmw_fmax_limit_check(steer_torque - actuator_torque, max_tq_rate, -max_tq_rate)) {
-          print("Violation torque rate\n");
-        // puth((int)(steer_torque * 100));print(", "); puth((int)(actuator_torque * 100));print(", "); puth((int)(max_tq_rate * 100));print("\n");
+    uint8_t steer_mode = (GET_BYTE(to_send, 1) >> 4) & 0b11u;
+    if (steer_mode != 0x0){
+      int8_t steer_torque = (int8_t)(GET_BYTE(to_send, 4)); // Nm / CAN_ACTUATOR_TQ_FAC
+      // int8_t steer_torque_last = desired_torque_last;
+      if (steer_torque_cmd_checks(steer_torque, -1, STEPPER_SERVO_LIMITS)) {
+        // print("Violation torque\n");
+        // puth(steer_torque);print(", ");puth(steer_torque_last);print(", "); puth(torque_meas.max);print(", "); puth(STEPPER_SERVO_LIMITS.max_rate_down);print("\n");
         tx = false;
       }
     }
     // Position Control Mode:
     float desired_angle = 0;
-    if (((GET_BYTE(to_send, 1) >> 4) & 0b11u) == 0x2){
+    if (steer_mode == 0x2){
       float angle_delta_req = ((float)(int16_t)((GET_BYTE(to_send, 2)) | (GET_BYTE(to_send, 3) << 8))) * CAN_ACTUATOR_POS_FAC; //deg/10ms
       desired_angle = bmw_rt_angle_last + angle_delta_req; //measured + requested delta
 
-      if (controls_allowed == true) {
+      if (controls_allowed == true) { // todo: use steer_angle_cmd_checks()
         bool violation = false;
         //check for max angles
         violation |= bmw_fmax_limit_check(desired_angle, bmw_max_angle, -bmw_max_angle);
