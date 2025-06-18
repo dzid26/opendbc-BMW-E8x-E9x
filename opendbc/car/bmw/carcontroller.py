@@ -159,7 +159,8 @@ class CarController(CarControllerBase):
         # *** apply steering torque ***
         if CC.enabled:
           new_steer = actuators.torque * CarControllerParams.STEER_MAX
-          # explicitly clip torque before sending on CAN
+          # explicitly clip torque before sending on CAN:
+          # - don't use apply_meas_steer_torque_limits() due to integer rounding
           apply_torque = apply_dist_to_meas_limits(new_steer, self.apply_torque_last, CS.out.steeringTorqueEps,
                                              CarControllerParams.STEER_DELTA_UP, CarControllerParams.STEER_DELTA_DOWN,
                                              CarControllerParams.STEER_ERROR_MAX, CarControllerParams.STEER_MAX)
