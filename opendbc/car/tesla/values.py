@@ -110,4 +110,4 @@ class TeslaFlags(IntFlag):
 
 DBC = CAR.create_dbc_map()
 
-STEER_THRESHOLD = 1
+STEER_THRESHOLD = 0.6
