@@ -12,7 +12,6 @@ class CarState(CarStateBase):
     super().__init__(CP)
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["TransmissionDataDisplay"]['ShiftLeverPosition']
-    self.steer_angle_delta = 0.
     self.gas_kickdown = False
 
     self.cluster_min_speed = CruiseSettings.CLUSTER_OFFSET
@@ -150,8 +149,11 @@ class CarState(CarStateBase):
 
     if self.CP.flags & BmwFlags.STEPPER_SERVO_CAN:
       ret.steeringTorqueEps =  cp_aux.vl['STEERING_STATUS']['STEERING_TORQUE']
-      self.steer_angle_delta = cp_aux.vl['STEERING_STATUS']['STEERING_ANGLE']
-      ret.steerFaultTemporary = int(cp_aux.vl['STEERING_STATUS']['CONTROL_STATUS']) & 0x4 != 0
+      ret.steeringAngleOffsetDeg = ret.steeringAngleDeg - cp_aux.vl['STEERING_STATUS']['STEERING_ANGLE']
+      ret.steerFaultTemporary = int(cp_aux.vl['STEERING_STATUS']['DEBUG_STATES']) & 0x20 != 0 # Comm error
+      ret.steerFaultTemporary |= int(cp_aux.vl['STEERING_STATUS']['DEBUG_STATES']) & 0x40 != 0 # motion task overrun
+      ret.steerFaultTemporary |= int(cp_aux.vl['STEERING_STATUS']['DEBUG_STATES']) & 0x80 != 0 # service task overrun
+      ret.steerFaultTemporary = int(cp_aux.vl['STEERING_STATUS']['CONTROL_STATUS']) & 0x4 != 0 # SOFT_OFF lockout
 
     self.prev_gas_pressed = ret.gasPressed
 
@@ -165,7 +167,17 @@ class CarState(CarStateBase):
         # repurpose resume button to adjust driver personality when engaged, else just resume
         1: ButtonType.resumeCruise if not ret.cruiseState.enabled else ButtonType.gapAdjustCruise})
       ]
+
+    self.cruise_state_enabled = ret.cruiseState.enabled
     return ret
+
+  # this is only to satisfy non pcmCruise test in test_panda_safety_carstate that requires button_enable
+  #
+  def update_button_enable(self, buttonEvents: list[structs.CarState.ButtonEvent]):
+    if self.cruise_state_enabled and not self.out.cruiseState.enabled:
+      return True
+    return False
+
 
   @staticmethod
   def get_can_parsers(CP):

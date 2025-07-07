@@ -65,7 +65,6 @@ const CanMsg BMW_TX_MSGS[] = {
 #define CAN_BMW_ACC_FAC 0.025
 #define CAN_ACTUATOR_POS_FAC 0.125
 #define CAN_ACTUATOR_TQ_FAC 0.125
-#define CAN_ACTUATOR_CONTROL_STATUS_SOFTOFF_BIT 2
 
 bool bmw_fmax_limit_check(float val, const float MAX_VAL, const float MIN_VAL) {
   return (val > MAX_VAL) || (val < MIN_VAL);
@@ -164,9 +163,9 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
     actuator_torque = (float)torque_meas_new * CAN_ACTUATOR_TQ_FAC;
     update_sample(&torque_meas, torque_meas_new);
 
-    if((((GET_BYTE(to_push, 1)>>4)>>CAN_ACTUATOR_CONTROL_STATUS_SOFTOFF_BIT) & 0x1) != 0x0){ //Soft off status means motor is shutting down due to error
+    if(((GET_BYTE(to_push, 1)>>4) & 0x4) != 0){ // SOFT_OFF ramp complete lockout status
       controls_allowed = false;
-      // print("BMW soft off\n");
+      // print("BMW SoftOff lockout\n");
     }
   }
 
