@@ -53,6 +53,7 @@ class CarState(CarStateBase):
     epas_status = cp_party.vl["EPAS3S_sysStatus"]
     self.hands_on_level = epas_status["EPAS3S_handsOnLevel"]
     ret.steeringAngleDeg = -epas_status["EPAS3S_internalSAS"]
+    ret.steeringAngleOffsetDeg = -cp_ap_party.vl["SCCM_steeringAngleSensor"]["SCCM_steeringAngle"] - ret.steeringAngleDeg
     ret.steeringRateDeg = -cp_ap_party.vl["SCCM_steeringAngleSensor"]["SCCM_steeringAngleSpeed"]
     torque_offset = 0.1
     ret.steeringTorque = -epas_status["EPAS3S_torsionBarTorque"] + torque_offset
