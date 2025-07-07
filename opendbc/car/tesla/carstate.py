@@ -55,6 +55,10 @@ class CarState(CarStateBase):
     ret.steeringAngleDeg = -epas_status["EPAS3S_internalSAS"]
     ret.steeringRateDeg = -cp_ap_party.vl["SCCM_steeringAngleSensor"]["SCCM_steeringAngleSpeed"]
 
+    # to normalize with driver torque, approximate steering shaft torque from rack force
+    knuckle_steer_arm_length = 0.13
+    ret.steeringTorqueEps = -epas_status["EPAS3S_steeringRackForce"] * knuckle_steer_arm_length / self.CP.steerRatio
+
     # stock handsOnLevel uses >0.5 for 0.25s, but is too slow
     ret.steeringPressed = self.update_steering_pressed(abs(-epas_status["EPAS3S_torsionBarTorque"]) > STEER_THRESHOLD, 5)
 
