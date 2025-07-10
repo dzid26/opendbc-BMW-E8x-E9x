@@ -15,6 +15,7 @@ AVERAGE_ROAD_ROLL = 0.06  # ~3.4 degrees, 6% superelevation. higher actual roll 
 MAX_LATERAL_ACCEL = ISO_LATERAL_ACCEL + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3.6 m/s^2
 MAX_LATERAL_JERK = 3.0 + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3.6 m/s^3
 
+STEER_BIAS_MAX = 0.2 # Nm
 STEER_VIRTUAL_SPRING_COEFF = 4.0
 
 
@@ -79,7 +80,11 @@ class CarController(CarControllerBase):
     lat_active = CC.latActive and CS.hands_on_level < 3
 
     steeringAngleDeg = actuators.steeringAngleDeg
-    steeringAngleDeg += CS.out.steeringTorque * STEER_VIRTUAL_SPRING_COEFF
+
+    # ignore potential steer bias
+    steeringTorqueDeadzone = CS.out.steeringTorque - np.clip(CS.out.steeringTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
+    # create virtual spring effect
+    steeringAngleDeg += steeringTorqueDeadzone * STEER_VIRTUAL_SPRING_COEFF
 
     if self.frame % 2 == 0:
       # Angular rate limit based on speed
