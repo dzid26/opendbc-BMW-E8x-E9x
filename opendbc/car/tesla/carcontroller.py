@@ -83,8 +83,11 @@ class CarController(CarControllerBase):
 
     # add deadzone to avoid steer torque offset and torque due to gravity and inertia
     steeringTorqueDeadzone = CS.out.steeringTorque - np.clip(CS.out.steeringTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
-    # create virtual spring effect
-    steeringAngleDeg += steeringTorqueDeadzone * get_max_angle(CS.out.vEgoRaw, self.VM) / STEER_VIRTUAL_SPRING_COEFF
+    
+    ## create virtual spring effect
+    # limit angle gain to avoid jerkiness
+    spring_coeff = min(get_max_angle(CS.out.vEgoRaw, self.VM) / STEER_VIRTUAL_SPRING_COEFF, 6)
+    steeringAngleDeg += steeringTorqueDeadzone * spring_coeff
 
     if self.frame % 2 == 0:
       # Angular rate limit based on speed
