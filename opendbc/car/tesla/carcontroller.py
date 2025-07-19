@@ -64,6 +64,7 @@ class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP):
     super().__init__(dbc_names, CP)
     self.apply_angle_last = 0
+    self.driver_override_angle_last = 0
     self.packer = CANPacker(dbc_names[Bus.party])
     self.tesla_can = TeslaCAN(self.packer)
 
@@ -79,20 +80,18 @@ class CarController(CarControllerBase):
     # Canceling is done on rising edge and is handled generically with CC.cruiseControl.cancel
     lat_active = CC.latActive and CS.hands_on_level < 3
 
-    steeringAngleDeg = actuators.steeringAngleDeg
-
-    # add deadzone to avoid steer torque offset and torque due to gravity and inertia
-    steeringTorqueDeadzone = CS.out.steeringTorque - np.clip(CS.out.steeringTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
-    
-    ## create virtual spring effect
-    # limit angle gain to avoid jerkiness
-    spring_coeff = min(get_max_angle(CS.out.vEgoRaw, self.VM) / STEER_VIRTUAL_SPRING_COEFF, 6)
-    steeringAngleDeg += steeringTorqueDeadzone * spring_coeff
-
     if self.frame % 2 == 0:
+      ## create virtual spring effect
+      # add deadzone to avoid steer torque offset and torque due to gravity and inertia
+      steering_torque_deadzone = CS.out.steeringTorque - np.clip(CS.out.steeringTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
+      driver_torque_to_angle = min(get_max_angle(max(1, CS.out.vEgoRaw), self.VM) / STEER_VIRTUAL_SPRING_COEFF, 90)
+      driver_override_angle = steering_torque_deadzone * driver_torque_to_angle
+      # rate limit angle gain to avoid EPS jerkiness
+      self.driver_override_angle_last = rate_limit(driver_override_angle, self.driver_override_angle_last, -3, 3)
+      
       # Angular rate limit based on speed
-      self.apply_angle_last = apply_tesla_steer_angle_limits(steeringAngleDeg, self.apply_angle_last, CS.out.vEgoRaw,
-                                                             CS.out.steeringAngleDeg, lat_active,
+      self.apply_angle_last = apply_tesla_steer_angle_limits(actuators.steeringAngleDeg + self.driver_override_angle_last, self.apply_angle_last,
+                                                             CS.out.vEgoRaw, CS.out.steeringAngleDeg, lat_active,
                                                              CarControllerParams.ANGLE_LIMITS, self.VM)
 
       can_sends.append(self.tesla_can.create_steering_control(self.apply_angle_last, lat_active))
@@ -120,3 +119,13 @@ class CarController(CarControllerBase):
 
     self.frame += 1
     return new_actuators, can_sends
+
+ 
+  
+if __name__ == "__main__":
+  
+  VM = VehicleModel(get_safety_CP())
+  
+  for v_ego_kph in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]:
+    v_ego_raw = v_ego_kph * 0.277778
+    print(f"v_ego: {v_ego_kph:.0f} kph, max_angle_delta: {get_max_angle_delta(v_ego_raw, VM):.2f} deg/20ms, max_angle: {get_max_angle(v_ego_raw, VM):.2f} deg")
