@@ -68,6 +68,8 @@ class CarController(CarControllerBase):
     self.steeringRateDeg_last = 0
     
     self.driver_override_angle_last = 0
+    self.driver_override_angle_delta_last = 0
+    
     self.packer = CANPacker(dbc_names[Bus.party])
     self.tesla_can = TeslaCAN(self.packer)
 
@@ -98,14 +100,20 @@ class CarController(CarControllerBase):
       # add deadzone to avoid steer torque offset and torque due to gravity and inertia
       steering_torque_deadzone = steering_torque_comp - np.clip(steering_torque_comp, -STEER_BIAS_MAX, STEER_BIAS_MAX)
       driver_torque_to_angle = min(get_max_angle(max(1, CS.out.vEgoRaw), self.VM) / STEER_VIRTUAL_SPRING_COEFF, 90)
+
       driver_override_angle = steering_torque_deadzone * driver_torque_to_angle
-      # rate limit angle gain to avoid EPS jerkiness
-      self.driver_override_angle_last = rate_limit(driver_override_angle, self.driver_override_angle_last, -3, 3)
-      
+
+      # limit angle acceleration to allow arm+steering to keep up with the rotation and avoid oscillations
+      driver_override_angle_delta = driver_override_angle - self.driver_override_angle_last
+      steering_driver_acc_ff = steering_torque_comp / (STEERING_MOMENT + STEERING_FOREARM_MOMENT) * CV.RAD_TO_DEG * (DT_CTRL * 2) # deg/s^2
+      self.driver_override_angle_delta_last = rate_limit(driver_override_angle_delta, self.driver_override_angle_delta_last, -steering_driver_acc_ff, steering_driver_acc_ff)
+      self.driver_override_angle_last = driver_torque_to_angle + self.driver_override_angle_delta_last
+
       # Angular rate limit based on speed
       self.apply_angle_last = apply_tesla_steer_angle_limits(actuators.steeringAngleDeg + self.driver_override_angle_last, self.apply_angle_last,
                                                              CS.out.vEgoRaw, CS.out.steeringAngleDeg, lat_active,
                                                              CarControllerParams.ANGLE_LIMITS, self.VM)
+      
 
       can_sends.append(self.tesla_can.create_steering_control(self.apply_angle_last, lat_active))
 
