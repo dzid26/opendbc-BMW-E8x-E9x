@@ -6,6 +6,7 @@ from opendbc.car.interfaces import CarControllerBase, ISO_LATERAL_ACCEL
 from opendbc.car.tesla.teslacan import TeslaCAN
 from opendbc.car.tesla.values import CarControllerParams
 from opendbc.car.vehicle_model import VehicleModel
+from opendbc.car.common.conversions import Conversions as CV
 
 # limit angle rate to both prevent a fault and for low speed comfort (~12 mph rate down to 0 mph)
 MAX_ANGLE_RATE = 5  # deg/20ms frame, EPS faults at 12 at a standstill
@@ -64,6 +65,8 @@ class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP):
     super().__init__(dbc_names, CP)
     self.apply_angle_last = 0
+    self.steeringRateDeg_last = 0
+    
     self.driver_override_angle_last = 0
     self.packer = CANPacker(dbc_names[Bus.party])
     self.tesla_can = TeslaCAN(self.packer)
@@ -79,11 +82,21 @@ class CarController(CarControllerBase):
     # When enabling in a tight curve, we wait until user reduces steering force to start steering.
     # Canceling is done on rising edge and is handled generically with CC.cruiseControl.cancel
     lat_active = CC.latActive and CS.hands_on_level < 3
+    
+    steeringAccDeg = (CS.out.steeringRateDeg - self.steeringRateDeg_last) / DT_CTRL # todo replace with CAN timestamps delta
+    self.steeringRateDeg_last = CS.out.steeringRateDeg # this signal should be EPS motor speed, but it's not available
+    STEERING_RIM_WEIGHT = 2 # kg
+    STEERING_RIM_RADIUS = 0.15 # m
+    FOREARM_WEIGHT = 1.5 #kg
+    STEERING_MOMENT = STEERING_RIM_WEIGHT * STEERING_RIM_RADIUS ** 2 # kg*m^2
+    STEERING_FOREARM_MOMENT = FOREARM_WEIGHT * STEERING_RIM_RADIUS ** 2 # kg*m^2
+    steering_inertia = steeringAccDeg * CV.DEG_TO_RAD * STEERING_MOMENT
+    steering_torque_comp = CS.out.steeringTorque + steering_inertia
 
     if self.frame % 2 == 0:
       ## create virtual spring effect
       # add deadzone to avoid steer torque offset and torque due to gravity and inertia
-      steering_torque_deadzone = CS.out.steeringTorque - np.clip(CS.out.steeringTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
+      steering_torque_deadzone = steering_torque_comp - np.clip(steering_torque_comp, -STEER_BIAS_MAX, STEER_BIAS_MAX)
       driver_torque_to_angle = min(get_max_angle(max(1, CS.out.vEgoRaw), self.VM) / STEER_VIRTUAL_SPRING_COEFF, 90)
       driver_override_angle = steering_torque_deadzone * driver_torque_to_angle
       # rate limit angle gain to avoid EPS jerkiness
@@ -116,7 +129,7 @@ class CarController(CarControllerBase):
     # TODO: HUD control
     new_actuators = actuators.as_builder()
     new_actuators.steeringAngleDeg = self.apply_angle_last
-
+    new_actuators.torque = steering_torque_comp # debugging
     self.frame += 1
     return new_actuators, can_sends
 
