@@ -82,9 +82,9 @@ def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, app
   override_angle_target_delta = apply_angle + override_angle_target - apply_angle_last
   # only limit in the direction of the torque
   if steering_torque_deadzone > 0 and override_angle_target_delta > 0:
-    override_angle_target_delta_limited = min(override_angle_target_delta, apply_angle_delta_last + override_steering_delta_rate_limit)
-  elif steering_torque_deadzone < 0 and override_angle_target_delta < 0:
-    override_angle_target_delta_limited = max(override_angle_target_delta, apply_angle_delta_last + override_steering_delta_rate_limit)
+    override_angle_target_delta_limited = min(override_angle_target_delta, max(apply_angle_delta_last, 0) + override_steering_delta_rate_limit)
+  elif steering_torque_deadzone < 0 and override_angle_target_delta < 0 and apply_angle_delta_last < 0:
+    override_angle_target_delta_limited = max(override_angle_target_delta, min(apply_angle_delta_last, 0) + override_steering_delta_rate_limit)
   else:
     override_angle_target_delta_limited = override_angle_target_delta
 
@@ -168,8 +168,8 @@ if __name__ == "__main__":
   from matplotlib.widgets import MultiCursor
 
   # User-friendly specification (just key points)
-  time_keypoints = [  0, .1,  1,  1.5, 1.7,   3.5, 4, 9, 10]      # Time in seconds
-  torque_keypoints = [0, 0.5, 0.5, 0.9, 0.5, 0.5, 0, -1, 0]   # Torque at keypoints (Nm)
+  time_keypoints = [  0, .1,  1,  1.5, 1.8,   3.5, 4, 9, 10]      # Time in seconds
+  torque_keypoints = [0, 0.5, 0.5, 0.9, 0.3, 0.6, 0, -1, 0]   # Torque at keypoints (Nm)
   v_ego = 4
   
   # Generate high-resolution time array (for smooth calculations)
@@ -179,8 +179,8 @@ if __name__ == "__main__":
   angle_target_last = 0
   angle_target_delta_last = 0
   override_angles, target_override_angles, override_angle_delta = [], [], []
-  for t in driver_torque:
-      angle_target, target_angle = applyOverrideAngle(t, v_ego, 0, angle_target_last, angle_target_delta_last, VM)
+  for tq in driver_torque:
+      angle_target, target_angle = applyOverrideAngle(tq, v_ego, 0, angle_target_last, angle_target_delta_last, VM)
       angle_target_delta_last = angle_target - angle_target_last
       angle_target_last = angle_target
       override_angles.append(angle_target)
