@@ -66,44 +66,36 @@ def get_safety_CP():
   from opendbc.car.tesla.interface import CarInterface
   return CarInterface.get_non_essential_params("TESLA_MODEL_Y")
 
-class DriverOverride:
-  def __init__(self):
-    self.override_angle_target_limited_last = 0.0
-    self.override_angle_target_delta_limited_last = 0.0
 
-  def calcAngleTarget(self, driverTorque: float, vEgo: float, VM: VehicleModel):
-    ## allow driver override to control lateral acceleration
-      # add deadzone to ignore steer torque offset and torque due to gravity and inertia
-      steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
-      override_torque_to_angle = min(get_max_angle(max(1, vEgo), VM) / STEER_VIRTUAL_SPRING_COEFF, 90)
+def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, apply_angle_last: float, apply_angle_delta_last: float, VM: VehicleModel, sample_time: float = DT_CTRL):
+  ## allow driver override to control lateral acceleration
+  # add deadzone to ignore steer torque offset, steering inertia, vehicle lateral and vertical acceleration
+  steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
+  override_torque_to_angle = min(get_max_angle(max(1, vEgo), VM) / STEER_VIRTUAL_SPRING_COEFF, 90)
 
-      override_angle_target = steering_torque_deadzone * override_torque_to_angle
+  override_angle_target = steering_torque_deadzone * override_torque_to_angle
+  
+  # limit angle acceleration for the arm and steering to keep up with the rotation and avoid oscillations
+  override_steering_acc_ff = steering_torque_deadzone / (STEERING_MOMENT + STEERING_FOREARM_MOMENT) * CV.RAD_TO_DEG # deg/s^2
+  override_steering_delta_rate_limit = override_steering_acc_ff * sample_time ** 2
+  
+  override_angle_target_delta = apply_angle + override_angle_target - apply_angle_last
+  # only limit in the direction of the torque
+  if steering_torque_deadzone > 0 and override_angle_target_delta > 0:
+    override_angle_target_delta_limited = min(override_angle_target_delta, apply_angle_delta_last + override_steering_delta_rate_limit)
+  elif steering_torque_deadzone < 0 and override_angle_target_delta < 0:
+    override_angle_target_delta_limited = max(override_angle_target_delta, apply_angle_delta_last + override_steering_delta_rate_limit)
+  else:
+    override_angle_target_delta_limited = override_angle_target_delta
 
-      # limit angle acceleration for the arm and steering to keep up with the rotation and avoid oscillations
-      override_steering_acc_ff = steering_torque_deadzone / (STEERING_MOMENT + STEERING_FOREARM_MOMENT) * CV.RAD_TO_DEG # deg/s^2
-      override_steering_delta_rate_limit = override_steering_acc_ff * DT_CTRL ** 2
-      
-      override_angle_target_delta = override_angle_target - self.override_angle_target_limited_last
-      # only limit in the direction of the torque
-      if steering_torque_deadzone > 0 and override_angle_target_delta > 0:
-        self.override_angle_target_delta_limited_last = min(override_angle_target_delta, self.override_angle_target_delta_limited_last + override_steering_delta_rate_limit)
-      elif steering_torque_deadzone < 0 and override_angle_target_delta < 0:
-        self.override_angle_target_delta_limited_last = max(override_angle_target_delta, self.override_angle_target_delta_limited_last + override_steering_delta_rate_limit)
-      else:
-        self.override_angle_target_delta_limited_last = override_angle_target_delta
-
-      self.override_angle_target_limited_last = self.override_angle_target_limited_last + self.override_angle_target_delta_limited_last
-
-      return self.override_angle_target_limited_last, override_angle_target, self.override_angle_target_delta_limited_last
-    
+  return apply_angle_last + override_angle_target_delta_limited, override_angle_target
 
 class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP):
     super().__init__(dbc_names, CP)
     self.apply_angle_last = 0
+    self.apply_angle_delta_last = 0
     self.steeringRateDeg_last = 0
-    
-    self.driver_override = DriverOverride()
     
     self.packer = CANPacker(dbc_names[Bus.party])
     self.tesla_can = TeslaCAN(self.packer)
@@ -125,14 +117,15 @@ class CarController(CarControllerBase):
     steering_inertia = steeringAccDeg * CV.DEG_TO_RAD * STEERING_MOMENT
     steering_torque_comp = CS.out.steeringTorque + steering_inertia
 
-    override_angle_target, _ = self.driver_override.calcAngleTarget(CS.out.steeringTorque, CS.out.vEgoRaw, self.VM)
-
     if self.frame % 2 == 0:
+      steering_angle_with_override, _ = applyOverrideAngle(CS.out.steeringTorque, CS.out.vEgoRaw, actuators.steeringAngleDeg, self.apply_angle_last, self.apply_angle_delta_last, self.VM, DT_CTRL * 2)
+      
       # Angular rate limit based on speed
-      self.apply_angle_last = apply_tesla_steer_angle_limits(actuators.steeringAngleDeg + override_angle_target, self.apply_angle_last,
+      apply_angle_rate_limited = apply_tesla_steer_angle_limits(steering_angle_with_override, self.apply_angle_last,
                                                              CS.out.vEgoRaw, CS.out.steeringAngleDeg, lat_active,
                                                              CarControllerParams.ANGLE_LIMITS, self.VM)
-      
+      self.apply_angle_delta_last = apply_angle_rate_limited - self.apply_angle_last
+      self.apply_angle_last = apply_angle_rate_limited
 
       can_sends.append(self.tesla_can.create_steering_control(self.apply_angle_last, lat_active))
 
@@ -169,8 +162,6 @@ if __name__ == "__main__":
   for v_ego_kph in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]:
     v_ego_raw = v_ego_kph * 0.277778
     print(f"v_ego: {v_ego_kph:.0f} kph, max_angle_delta: {get_max_angle_delta(v_ego_raw, VM):.2f} deg/20ms, max_angle: {get_max_angle(v_ego_raw, VM):.2f} deg")
-  
-  driver_override = DriverOverride()
 
   import matplotlib.pyplot as plt
   import numpy as np
@@ -183,12 +174,18 @@ if __name__ == "__main__":
   
   # Generate high-resolution time array (for smooth calculations)
   time = np.linspace(time_keypoints[0], time_keypoints[-1],int(time_keypoints[-1] / DT_CTRL))
-  torque = np.interp(time, time_keypoints, torque_keypoints)
+  driver_torque = np.interp(time, time_keypoints, torque_keypoints)
 
-  # Compute system response at high resolution
-  override_angles = [driver_override.calcAngleTarget(t, v_ego, VM)[0] for t in torque]
-  target_override_angles = [driver_override.calcAngleTarget(t, v_ego, VM)[1] for t in torque]
-  override_angle_delta = [driver_override.calcAngleTarget(t, v_ego, VM)[2] for t in torque]
+  angle_target_last = 0
+  angle_target_delta_last = 0
+  override_angles, target_override_angles, override_angle_delta = [], [], []
+  for t in driver_torque:
+      angle_target, target_angle = applyOverrideAngle(t, v_ego, 0, angle_target_last, angle_target_delta_last, VM)
+      angle_target_delta_last = angle_target - angle_target_last
+      angle_target_last = angle_target
+      override_angles.append(angle_target)
+      target_override_angles.append(target_angle)
+      override_angle_delta.append(angle_target_delta_last)
   
   # Plotting
   fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
@@ -196,7 +193,7 @@ if __name__ == "__main__":
   multi = MultiCursor(fig.canvas, (ax1, ax2), color='r', lw=1, horizOn=False, vertOn=True)
 
   # Torque profile
-  ax1.plot(time, torque, 'g-', linewidth=2, label='Torque (Nm)')
+  ax1.plot(time, driver_torque, 'g-', linewidth=2, label='Torque (Nm)')
   ax1.set_ylabel('Torque [Nm]')
   ax1.legend(loc='upper right')
   ax1.grid(True)
