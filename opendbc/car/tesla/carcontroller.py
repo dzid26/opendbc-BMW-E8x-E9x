@@ -67,8 +67,8 @@ class CarController(CarControllerBase):
     self.apply_angle_last = 0
     self.steeringRateDeg_last = 0
     
-    self.driver_override_angle_last = 0
-    self.driver_override_angle_delta_last = 0
+    self.override_angle_target_last = 0
+    self.override_angle_target_delta_limited_last = 0
     
     self.packer = CANPacker(dbc_names[Bus.party])
     self.tesla_can = TeslaCAN(self.packer)
@@ -95,22 +95,31 @@ class CarController(CarControllerBase):
     steering_inertia = steeringAccDeg * CV.DEG_TO_RAD * STEERING_MOMENT
     steering_torque_comp = CS.out.steeringTorque + steering_inertia
 
+
+    ## allow driver override to control lateral acceleration
+    # add deadzone to ignore steer torque offset and torque due to gravity and inertia
+    steering_torque_deadzone = steering_torque_comp - np.clip(steering_torque_comp, -STEER_BIAS_MAX, STEER_BIAS_MAX)
+    override_torque_to_angle = min(get_max_angle(max(1, CS.out.vEgoRaw), self.VM) / STEER_VIRTUAL_SPRING_COEFF, 90)
+
+    override_angle_target = steering_torque_deadzone * override_torque_to_angle
+
+    # limit angle acceleration for the arm and steering to keep up with the rotation and avoid oscillations
+    override_steering_acc_ff = steering_torque_deadzone / (STEERING_MOMENT + STEERING_FOREARM_MOMENT) * CV.RAD_TO_DEG # deg/s^2
+    override_steering_delta_rate_limit = override_steering_acc_ff * DT_CTRL ** 2
+    override_angle_target_delta = override_angle_target - self.override_angle_target_last
+    # only limit in the direction of the torque
+    if override_steering_delta_rate_limit > 0:
+      self.override_angle_target_delta_limited_last = min(override_angle_target_delta, self.override_angle_target_delta_limited_last + override_steering_delta_rate_limit)
+    elif override_steering_delta_rate_limit < 0:
+      self.override_angle_target_delta_limited_last = max(override_angle_target_delta, self.override_angle_target_delta_limited_last + override_steering_delta_rate_limit)
+    else:
+      self.override_angle_target_delta_limited_last = override_angle_target_delta
+
+    self.override_angle_target_last = self.override_angle_target_last + self.override_angle_target_delta_limited_last
+
     if self.frame % 2 == 0:
-      ## create virtual spring effect
-      # add deadzone to avoid steer torque offset and torque due to gravity and inertia
-      steering_torque_deadzone = steering_torque_comp - np.clip(steering_torque_comp, -STEER_BIAS_MAX, STEER_BIAS_MAX)
-      driver_torque_to_angle = min(get_max_angle(max(1, CS.out.vEgoRaw), self.VM) / STEER_VIRTUAL_SPRING_COEFF, 90)
-
-      driver_override_angle = steering_torque_deadzone * driver_torque_to_angle
-
-      # limit angle acceleration to allow arm+steering to keep up with the rotation and avoid oscillations
-      driver_override_angle_delta = driver_override_angle - self.driver_override_angle_last
-      steering_driver_acc_ff = steering_torque_comp / (STEERING_MOMENT + STEERING_FOREARM_MOMENT) * CV.RAD_TO_DEG * (DT_CTRL * 2) # deg/s^2
-      self.driver_override_angle_delta_last = rate_limit(driver_override_angle_delta, self.driver_override_angle_delta_last, -steering_driver_acc_ff, steering_driver_acc_ff)
-      self.driver_override_angle_last = driver_torque_to_angle + self.driver_override_angle_delta_last
-
       # Angular rate limit based on speed
-      self.apply_angle_last = apply_tesla_steer_angle_limits(actuators.steeringAngleDeg + self.driver_override_angle_last, self.apply_angle_last,
+      self.apply_angle_last = apply_tesla_steer_angle_limits(actuators.steeringAngleDeg + self.override_angle_target_last, self.apply_angle_last,
                                                              CS.out.vEgoRaw, CS.out.steeringAngleDeg, lat_active,
                                                              CarControllerParams.ANGLE_LIMITS, self.VM)
       
