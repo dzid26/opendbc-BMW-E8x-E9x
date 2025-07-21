@@ -69,37 +69,35 @@ def get_safety_CP():
   return CarInterface.get_non_essential_params("TESLA_MODEL_Y")
 
 
-def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, apply_angle_last: float, apply_angle_delta_last: float, VM: VehicleModel, sample_time: float = DT_CTRL):
-  ## allow driver override to control lateral acceleration
-  # add deadzone to ignore steer torque offset, steering inertia, vehicle lateral and vertical acceleration
-  steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
-  override_torque_to_angle = min(get_max_angle(max(1, vEgo), VM) / STEER_VIRTUAL_SPRING_DIV, 90) / (STEER_MAX_OVERRIDE_TORQUE - STEER_BIAS_MAX) # todo subtract apply angle from the target since we shouldn exceed a sum of the two
-  spring_constant = 1 / (override_torque_to_angle * CV.DEG_TO_RAD)
+def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, apply_angle_last: float, 
+                     apply_angle_delta_last: float, VM: VehicleModel, sample_time: float = DT_CTRL) -> tuple[float, float]:
 
-  override_angle_target = steering_torque_deadzone * override_torque_to_angle
+    # virtual spring from lateral acceleration
+    steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
+    torque_to_angle = min(get_max_angle(max(1, vEgo), VM) / STEER_VIRTUAL_SPRING_DIV, 90) / (STEER_MAX_OVERRIDE_TORQUE - STEER_BIAS_MAX) # todo subtract apply angle from the target since we shouldn exceed a sum of the two
+    k_spring = 1 / (torque_to_angle * CV.DEG_TO_RAD)
+    
+    # desired system characteristics
+    desired_steering_weight = STEERING_MOMENT /4   # kg·m²
+    b_crit = 2 * np.sqrt(desired_steering_weight * k_spring)  # critically damped - no overshoots
 
-  # limit angle acceleration for the arm and steering to keep up with the rotation and avoid oscillations
-  override_steering_acc_ff = driverTorque / (STEERING_MOMENT + STEERING_FOREARM_MOMENT) * CV.RAD_TO_DEG # deg/s^2
-  override_centering_acc = MAX_TORQUE_DUE_TO_ACCEL / STEERING_MOMENT * CV.RAD_TO_DEG
-  override_steering_delta_rate_limit = override_steering_acc_ff * sample_time ** 2
-  override_centering_delta_rate_limit = override_centering_acc * sample_time ** 2
+    velocity = apply_angle_delta_last / sample_time * CV.DEG_TO_RAD
+    position = (apply_angle_last - apply_angle) * CV.DEG_TO_RAD
+    input_torque = steering_torque_deadzone
+    
+    desired_alpha = (input_torque - b_crit * velocity - k_spring * position) / desired_steering_weight  # rad/s²
+    
+    # limit acceleration to make sure torsion bar torque doesn't change much during acceleration
+    max_alpha = MAX_TORQUE_DUE_TO_ACCEL / STEERING_MOMENT  # rad/s²
+    desired_alpha = np.clip(desired_alpha, -max_alpha, max_alpha)
+    
+    new_velocity = (velocity + desired_alpha * sample_time)
+    new_angle = apply_angle_last + new_velocity * CV.RAD_TO_DEG * sample_time
+    
+    override_angle_target = input_torque * torque_to_angle
+    
+    return new_angle, override_angle_target
   
-  J = STEERING_MOMENT + STEERING_FOREARM_MOMENT*0
-  critical_damping_constant = 2 * np.sqrt(spring_constant * J)
-  damping_torque = critical_damping_constant * apply_angle_delta_last * CV.DEG_TO_RAD / sample_time  # [Nm]
-  damping_angle = damping_torque * override_torque_to_angle  # [deg]
-  
-  override_angle_target_delta = apply_angle + override_angle_target - apply_angle_last
-  override_angle_target_delta_damped = override_angle_target_delta - damping_angle
-  
-  # if override_angle_target_delta * apply_angle_delta_last > 0:
-  override_angle_target_delta_limited = rate_limit(override_angle_target_delta_damped, apply_angle_delta_last, 
-                                                   min(-override_centering_delta_rate_limit, override_steering_delta_rate_limit*0),
-                                                   max( override_centering_delta_rate_limit, override_steering_delta_rate_limit*0))
-
-  # rate_limit(apply_angle_last + override_angle_target_delta_limited, apply_angle_last, )
-  return apply_angle_last + override_angle_target_delta_limited, override_angle_target
-
 class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP):
     super().__init__(dbc_names, CP)
@@ -180,7 +178,7 @@ if __name__ == "__main__":
   # User-friendly specification (just key points)
   time_keypoints = [  0, .1,  1,  1.2, 1.7,   3.5, 4, 9, 10]      # Time in seconds
   torque_keypoints = [0, 0.5, 0.5, 0.9, 0.4, 0.6, 0, -1, 0]   # Torque at keypoints (Nm)
-  v_ego = 10
+  v_ego = 4
   
   # Generate high-resolution time array (for smooth calculations)
   time = np.linspace(time_keypoints[0], time_keypoints[-1],int(time_keypoints[-1] / DT_CTRL))
