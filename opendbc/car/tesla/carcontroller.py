@@ -17,13 +17,15 @@ MAX_LATERAL_ACCEL = ISO_LATERAL_ACCEL + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_R
 MAX_LATERAL_JERK = 3.0 + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3.6 m/s^3
 
 STEER_BIAS_MAX = 0.2 # Nm
-STEER_VIRTUAL_SPRING_COEFF = 4.0
+STEER_MAX_OVERRIDE_TORQUE = 2.0 # Nm before disengages for sure
+STEER_VIRTUAL_SPRING_DIV = 4.0
 
 STEERING_RIM_WEIGHT = 2 # kg
 STEERING_RIM_RADIUS = 0.15 # m
 FOREARM_WEIGHT = 1.5 #kg
 STEERING_MOMENT = STEERING_RIM_WEIGHT * STEERING_RIM_RADIUS ** 2 # kg*m^2
 STEERING_FOREARM_MOMENT = FOREARM_WEIGHT * STEERING_RIM_RADIUS ** 2 # kg*m^2
+MAX_TORQUE_DUE_TO_ACCEL = 0.2 # Nm
 
 
 def get_max_angle_delta(v_ego_raw: float, VM: VehicleModel):
@@ -71,23 +73,31 @@ def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, app
   ## allow driver override to control lateral acceleration
   # add deadzone to ignore steer torque offset, steering inertia, vehicle lateral and vertical acceleration
   steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
-  override_torque_to_angle = min(get_max_angle(max(1, vEgo), VM) / STEER_VIRTUAL_SPRING_COEFF, 90)
+  override_torque_to_angle = min(get_max_angle(max(1, vEgo), VM) / STEER_VIRTUAL_SPRING_DIV, 90) / (STEER_MAX_OVERRIDE_TORQUE - STEER_BIAS_MAX) # todo subtract apply angle from the target since we shouldn exceed a sum of the two
+  spring_constant = 1 / (override_torque_to_angle * CV.DEG_TO_RAD)
 
   override_angle_target = steering_torque_deadzone * override_torque_to_angle
-  
+
   # limit angle acceleration for the arm and steering to keep up with the rotation and avoid oscillations
-  override_steering_acc_ff = steering_torque_deadzone / (STEERING_MOMENT + STEERING_FOREARM_MOMENT) * CV.RAD_TO_DEG # deg/s^2
+  override_steering_acc_ff = driverTorque / (STEERING_MOMENT + STEERING_FOREARM_MOMENT) * CV.RAD_TO_DEG # deg/s^2
+  override_centering_acc = MAX_TORQUE_DUE_TO_ACCEL / STEERING_MOMENT * CV.RAD_TO_DEG
   override_steering_delta_rate_limit = override_steering_acc_ff * sample_time ** 2
+  override_centering_delta_rate_limit = override_centering_acc * sample_time ** 2
+  
+  J = STEERING_MOMENT + STEERING_FOREARM_MOMENT*0
+  critical_damping_constant = 2 * np.sqrt(spring_constant * J)
+  damping_torque = critical_damping_constant * apply_angle_delta_last * CV.DEG_TO_RAD / sample_time  # [Nm]
+  damping_angle = damping_torque * override_torque_to_angle  # [deg]
   
   override_angle_target_delta = apply_angle + override_angle_target - apply_angle_last
-  # only limit in the direction of the torque
-  if steering_torque_deadzone > 0 and override_angle_target_delta > 0:
-    override_angle_target_delta_limited = min(override_angle_target_delta, max(apply_angle_delta_last, 0) + override_steering_delta_rate_limit)
-  elif steering_torque_deadzone < 0 and override_angle_target_delta < 0 and apply_angle_delta_last < 0:
-    override_angle_target_delta_limited = max(override_angle_target_delta, min(apply_angle_delta_last, 0) + override_steering_delta_rate_limit)
-  else:
-    override_angle_target_delta_limited = override_angle_target_delta
+  override_angle_target_delta_damped = override_angle_target_delta - damping_angle
+  
+  # if override_angle_target_delta * apply_angle_delta_last > 0:
+  override_angle_target_delta_limited = rate_limit(override_angle_target_delta_damped, apply_angle_delta_last, 
+                                                   min(-override_centering_delta_rate_limit, override_steering_delta_rate_limit*0),
+                                                   max( override_centering_delta_rate_limit, override_steering_delta_rate_limit*0))
 
+  # rate_limit(apply_angle_last + override_angle_target_delta_limited, apply_angle_last, )
   return apply_angle_last + override_angle_target_delta_limited, override_angle_target
 
 class CarController(CarControllerBase):
@@ -168,9 +178,9 @@ if __name__ == "__main__":
   from matplotlib.widgets import MultiCursor
 
   # User-friendly specification (just key points)
-  time_keypoints = [  0, .1,  1,  1.5, 1.8,   3.5, 4, 9, 10]      # Time in seconds
-  torque_keypoints = [0, 0.5, 0.5, 0.9, 0.3, 0.6, 0, -1, 0]   # Torque at keypoints (Nm)
-  v_ego = 4
+  time_keypoints = [  0, .1,  1,  1.2, 1.7,   3.5, 4, 9, 10]      # Time in seconds
+  torque_keypoints = [0, 0.5, 0.5, 0.9, 0.4, 0.6, 0, -1, 0]   # Torque at keypoints (Nm)
+  v_ego = 10
   
   # Generate high-resolution time array (for smooth calculations)
   time = np.linspace(time_keypoints[0], time_keypoints[-1],int(time_keypoints[-1] / DT_CTRL))
