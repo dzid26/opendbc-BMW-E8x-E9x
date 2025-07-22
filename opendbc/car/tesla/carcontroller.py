@@ -17,8 +17,9 @@ MAX_LATERAL_ACCEL = ISO_LATERAL_ACCEL + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_R
 MAX_LATERAL_JERK = 3.0 + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3.6 m/s^3
 
 STEER_BIAS_MAX = 0.2 # Nm
-STEER_MAX_OVERRIDE_TORQUE = 2.0 # Nm before disengages for sure
-STEER_OVERRRIDE_MAX_LAT_ACCEL = 1.0
+STEER_OVERRIDE_MAX_TORQUE = 2.5 # Nm max toeque before EPS disengages when steering rotation is slow
+STEER_OVERRRIDE_MAX_LAT_ACCEL = 2.0 # m/s^2 - similar to Tesla comfort steering mode
+STEER_OVERRRIDE_GAIN_LIMIT = 6 # to ensure low speed stability
 
 STEERING_RIM_WEIGHT = 2 # kg
 STEERING_RIM_RADIUS = 0.15 # m
@@ -68,14 +69,13 @@ def get_safety_CP():
   from opendbc.car.tesla.interface import CarInterface
   return CarInterface.get_non_essential_params("TESLA_MODEL_Y")
 
-STABLE_TORQUE_TO_ANGLE = 6
 def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, apply_angle_last: float, 
                      apply_angle_delta_last: float, VM: VehicleModel, sample_time: float = DT_CTRL) -> tuple[float, float]:
 
     # virtual spring from lateral acceleration
     steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
     # todo maybe saturate target lateral acc based on safety limit minus actual lateral acc
-    torque_to_angle = min(get_max_angle(max(1, vEgo), VM, STEER_OVERRRIDE_MAX_LAT_ACCEL) / (STEER_MAX_OVERRIDE_TORQUE - STEER_BIAS_MAX), STABLE_TORQUE_TO_ANGLE)
+    torque_to_angle = min(get_max_angle(max(1, vEgo), VM, STEER_OVERRRIDE_MAX_LAT_ACCEL) / (STEER_OVERRIDE_MAX_TORQUE - STEER_BIAS_MAX), STEER_OVERRRIDE_GAIN_LIMIT)
     override_angle_target = steering_torque_deadzone * torque_to_angle
     
     
@@ -96,7 +96,7 @@ def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, app
     
     # new_velocity = (velocity + desired_alpha * sample_time)
     # new_angle = apply_angle_last + new_velocity * CV.RAD_TO_DEG * sample_time
-    new_angle = override_angle_target
+    new_angle = apply_angle + override_angle_target
     
     return new_angle, override_angle_target
   
