@@ -18,7 +18,7 @@ MAX_LATERAL_JERK = 3.0 + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3
 
 STEER_BIAS_MAX = 0.2 # Nm
 STEER_MAX_OVERRIDE_TORQUE = 2.0 # Nm before disengages for sure
-STEER_VIRTUAL_SPRING_DIV = 4.0
+STEER_OVERRRIDE_MAX_LAT_ACCEL = 1.0
 
 STEERING_RIM_WEIGHT = 2 # kg
 STEERING_RIM_RADIUS = 0.15 # m
@@ -34,8 +34,8 @@ def get_max_angle_delta(v_ego_raw: float, VM: VehicleModel):
   return max_angle_rate_sec * (DT_CTRL * CarControllerParams.STEER_STEP)
 
 
-def get_max_angle(v_ego_raw: float, VM: VehicleModel):
-  max_curvature = MAX_LATERAL_ACCEL / (v_ego_raw ** 2)  # 1/m
+def get_max_angle(v_ego_raw: float, VM: VehicleModel, lat_accel: float = MAX_LATERAL_ACCEL):
+  max_curvature = lat_accel / (v_ego_raw ** 2)  # 1/m
   return math.degrees(VM.get_steer_from_curvature(max_curvature, v_ego_raw, 0))  # deg
 
 
@@ -68,33 +68,35 @@ def get_safety_CP():
   from opendbc.car.tesla.interface import CarInterface
   return CarInterface.get_non_essential_params("TESLA_MODEL_Y")
 
-
+STABLE_TORQUE_TO_ANGLE = 6
 def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, apply_angle_last: float, 
                      apply_angle_delta_last: float, VM: VehicleModel, sample_time: float = DT_CTRL) -> tuple[float, float]:
 
     # virtual spring from lateral acceleration
     steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
-    torque_to_angle = min(get_max_angle(max(1, vEgo), VM) / STEER_VIRTUAL_SPRING_DIV, 90) / (STEER_MAX_OVERRIDE_TORQUE - STEER_BIAS_MAX) # todo subtract apply angle from the target since we shouldn exceed a sum of the two
-    k_spring = 1 / (torque_to_angle * CV.DEG_TO_RAD)
+    # todo maybe saturate target lateral acc based on safety limit minus actual lateral acc
+    torque_to_angle = min(get_max_angle(max(1, vEgo), VM, STEER_OVERRRIDE_MAX_LAT_ACCEL) / (STEER_MAX_OVERRIDE_TORQUE - STEER_BIAS_MAX), STABLE_TORQUE_TO_ANGLE)
+    override_angle_target = steering_torque_deadzone * torque_to_angle
     
-    # desired system characteristics
-    desired_steering_weight = STEERING_MOMENT /4   # kg·m²
-    b_crit = 2 * np.sqrt(desired_steering_weight * k_spring)  # critically damped - no overshoots
+    
+    # # desired system characteristics
+    # desired_steering_weight = STEERING_MOMENT /4   # kg·m²
+    # k_spring = 1 / (torque_to_angle * CV.DEG_TO_RAD)
+    # b_crit = 2 * np.sqrt(desired_steering_weight * k_spring)  # critically damped - no overshoots
 
-    velocity = apply_angle_delta_last / sample_time * CV.DEG_TO_RAD
-    position = (apply_angle_last - apply_angle) * CV.DEG_TO_RAD
-    input_torque = steering_torque_deadzone
+    # velocity = apply_angle_delta_last / sample_time * CV.DEG_TO_RAD
+    # position = (apply_angle_last - apply_angle) * CV.DEG_TO_RAD
+    # input_torque = steering_torque_deadzone
     
-    desired_alpha = (input_torque - b_crit * velocity - k_spring * position) / desired_steering_weight  # rad/s²
+    # desired_alpha = (input_torque - b_crit * velocity - k_spring * position) / desired_steering_weight  # rad/s²
     
-    # limit acceleration to make sure torsion bar torque doesn't change much during acceleration
-    max_alpha = MAX_TORQUE_DUE_TO_ACCEL / STEERING_MOMENT  # rad/s²
-    desired_alpha = np.clip(desired_alpha, -max_alpha, max_alpha)
+    # # limit acceleration to make sure torsion bar torque doesn't change much during acceleration
+    # max_alpha = MAX_TORQUE_DUE_TO_ACCEL / STEERING_MOMENT  # rad/s²
+    # desired_alpha = np.clip(desired_alpha, -max_alpha, max_alpha)
     
-    new_velocity = (velocity + desired_alpha * sample_time)
-    new_angle = apply_angle_last + new_velocity * CV.RAD_TO_DEG * sample_time
-    
-    override_angle_target = input_torque * torque_to_angle
+    # new_velocity = (velocity + desired_alpha * sample_time)
+    # new_angle = apply_angle_last + new_velocity * CV.RAD_TO_DEG * sample_time
+    new_angle = override_angle_target
     
     return new_angle, override_angle_target
   
