@@ -17,9 +17,9 @@ MAX_LATERAL_ACCEL = ISO_LATERAL_ACCEL + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_R
 MAX_LATERAL_JERK = 3.0 + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3.6 m/s^3
 
 STEER_BIAS_MAX = 0.2 # Nm
-STEER_OVERRIDE_MAX_TORQUE = 2.5 # Nm max toeque before EPS disengages when steering rotation is slow
-STEER_OVERRRIDE_MAX_LAT_ACCEL = 2.0 # m/s^2 - similar to Tesla comfort steering mode
-STEER_OVERRRIDE_GAIN_LIMIT = 6 # to ensure low speed stability
+STEER_OVERRIDE_MAX_TORQUE = 2.5 # Nm max torque before EPS disengages when steering rotation is slow
+STEER_OVERRIDE_MAX_LAT_ACCEL = 2.0 # m/s^2 - similar to Tesla comfort steering mode
+STEER_OVERRIDE_GAIN_LIMIT = 6 # to ensure low speed stability
 
 STEERING_RIM_WEIGHT = 2 # kg
 STEERING_RIM_RADIUS = 0.15 # m
@@ -72,12 +72,11 @@ def get_safety_CP():
 def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, apply_angle_last: float, 
                      apply_angle_delta_last: float, VM: VehicleModel, sample_time: float = DT_CTRL) -> tuple[float, float]:
 
-    # virtual spring from lateral acceleration
     steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
-    # todo maybe saturate target lateral acc based on safety limit minus actual lateral acc
-    torque_to_angle = min(get_max_angle(max(1, vEgo), VM, STEER_OVERRRIDE_MAX_LAT_ACCEL) / (STEER_OVERRIDE_MAX_TORQUE - STEER_BIAS_MAX), STEER_OVERRRIDE_GAIN_LIMIT)
-    override_angle_target = steering_torque_deadzone * torque_to_angle
-    
+    max_override_torque = (STEER_OVERRIDE_MAX_TORQUE - STEER_BIAS_MAX)
+    # virtual spring from lateral acceleration
+    torque_to_angle_outer = get_max_angle(max(1, vEgo), VM, STEER_OVERRIDE_MAX_LAT_ACCEL) / max_override_torque
+    override_angle_outward = steering_torque_deadzone * min(torque_to_angle_outer, STEER_OVERRIDE_GAIN_LIMIT)
     
     # # desired system characteristics
     # desired_steering_weight = STEERING_MOMENT /4   # kg·m²
@@ -96,9 +95,16 @@ def applyOverrideAngle(driverTorque: float, vEgo: float, apply_angle: float, app
     
     # new_velocity = (velocity + desired_alpha * sample_time)
     # new_angle = apply_angle_last + new_velocity * CV.RAD_TO_DEG * sample_time
-    new_angle = apply_angle + override_angle_target
     
-    return new_angle, override_angle_target
+    if (apply_angle * steering_torque_deadzone) > 0:
+      new_angle = apply_angle + override_angle_outward
+    else:
+      # allow to fully center
+      np.clip(steering_torque_deadzone, -STEER_OVERRIDE_MAX_TORQUE, STEER_OVERRIDE_MAX_TORQUE) # make sure it actually is bounded
+      override_ratio = (abs(steering_torque_deadzone) - max_override_torque) / max_override_torque
+      new_angle = apply_angle * override_ratio  + override_angle_outward
+    
+    return new_angle, override_angle_outward
   
 class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP):
@@ -169,9 +175,9 @@ if __name__ == "__main__":
   
   VM = VehicleModel(get_safety_CP())
   
-  for v_ego_kph in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]:
+  for v_ego_kph in [10, 19.5, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]:
     v_ego_raw = v_ego_kph * 0.277778
-    print(f"v_ego: {v_ego_kph:.0f} kph, max_angle_delta: {get_max_angle_delta(v_ego_raw, VM):.2f} deg/20ms, max_angle: {get_max_angle(v_ego_raw, VM):.2f} deg")
+    print(f"v_ego: {v_ego_kph:.0f} kph, max_angle_delta: {get_max_angle_delta(v_ego_raw, VM):.2f} deg/20ms, max_angle: {get_max_angle(v_ego_raw, VM, STEER_OVERRIDE_MAX_LAT_ACCEL):.2f} deg")
 
   import matplotlib.pyplot as plt
   import numpy as np
