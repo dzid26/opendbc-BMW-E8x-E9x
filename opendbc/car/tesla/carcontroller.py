@@ -15,7 +15,7 @@ AVERAGE_ROAD_ROLL = 0.06  # ~3.4 degrees, 6% superelevation. higher actual roll 
 MAX_LATERAL_ACCEL = ISO_LATERAL_ACCEL + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3.6 m/s^2
 MAX_LATERAL_JERK = 3.0 + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3.6 m/s^3
 
-STEER_BIAS_MAX = 0.2 # Nm
+STEER_BIAS_MAX = 0.3 # Nm
 STEER_OVERRIDE_MAX_TORQUE = 2.5 # Nm max torque before EPS disengages
 STEER_OVERRIDE_MAX_LAT_ACCEL = 2.0 # m/s^2 - similar to Tesla comfort steering mode
 STEER_OVERRIDE_GAIN_LIMIT = 10 # jerky but stable
@@ -61,19 +61,29 @@ def get_safety_CP():
   from opendbc.car.tesla.interface import CarInterface
   return CarInterface.get_non_essential_params("TESLA_MODEL_Y")
 
-def applyOverrideAngle(apply_angle: float, driverTorque: float, vEgo: float, VM: VehicleModel) -> float:
-    # ignore torque pffset and disturbances
-    steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
+def applyOverrideAngle(target_angle_last, apply_angle_last, apply_angle: float, driverTorque: float, vEgo: float, lat_active, VM: VehicleModel):
+  # ignore torque offset and disturbances
+  steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
 
-    # todo maybe saturate target lateral acc based on safety limit minus actual lateral acc
-    torque_to_angle = get_max_angle(max(1, vEgo), VM, STEER_OVERRIDE_MAX_LAT_ACCEL) / (STEER_OVERRIDE_MAX_TORQUE - STEER_BIAS_MAX)
-    override_angle_target = steering_torque_deadzone * min(torque_to_angle, STEER_OVERRIDE_GAIN_LIMIT)
+  torque_to_angle = get_max_angle(max(1, vEgo), VM, STEER_OVERRIDE_MAX_LAT_ACCEL) / (STEER_OVERRIDE_MAX_TORQUE - STEER_BIAS_MAX)
+  override_angle_target = steering_torque_deadzone * min(torque_to_angle, STEER_OVERRIDE_GAIN_LIMIT)
 
-    return apply_angle + override_angle_target
+  if apply_angle * steering_torque_deadzone < 0 or not lat_active:
+    # use last target angle if driver torque is opposite to it
+    if driverTorque > 0:
+      target_angle_last = max(target_angle_last, apply_angle)
+    else:
+      target_angle_last = min(target_angle_last, apply_angle)
+    return target_angle_last + override_angle_target, target_angle_last
+  else:
+    # save last angle without driver override
+    target_angle_last = apply_angle_last
+    return apply_angle + override_angle_target, target_angle_last
 
 class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP):
     super().__init__(dbc_names, CP)
+    self.target_angle_last = 0
     self.apply_angle_last = 0
     self.packer = CANPacker(dbc_names[Bus.party])
     self.tesla_can = TeslaCAN(self.packer)
@@ -91,7 +101,7 @@ class CarController(CarControllerBase):
     lat_active = CC.latActive and CS.hands_on_level < 3
     if self.frame % 2 == 0:
       # Add driver override
-      steering_angle_with_override = applyOverrideAngle(actuators.steeringAngleDeg, CS.out.steeringTorque, CS.out.vEgoRaw, self.VM)
+      steering_angle_with_override, self.target_angle_last = applyOverrideAngle(self.target_angle_last, self.apply_angle_last, actuators.steeringAngleDeg, CS.out.steeringTorque, CS.out.vEgoRaw, lat_active, self.VM)
 
       # Angular rate limit based on speed
       self.apply_angle_last = apply_tesla_steer_angle_limits(steering_angle_with_override, self.apply_angle_last,
