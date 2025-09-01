@@ -17,8 +17,8 @@ MAX_LATERAL_JERK = 3.0 + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3
 
 STEER_BIAS_MAX = 0.2 # Nm
 STEER_OVERRIDE_MAX_TORQUE = 2.5 # Nm max torque before EPS disengages
-STEER_OVERRRIDE_MAX_LAT_ACCEL = 2.0 # m/s^2 - similar to Tesla comfort steering mode
-STEER_OVERRRIDE_GAIN_LIMIT = 10 # jerky but stable
+STEER_OVERRIDE_MAX_LAT_ACCEL = 2.0 # m/s^2 - similar to Tesla comfort steering mode
+STEER_OVERRIDE_GAIN_LIMIT = 10 # jerky but stable
 
 
 def get_max_angle_delta(v_ego_raw: float, VM: VehicleModel):
@@ -64,13 +64,13 @@ def get_safety_CP():
 def applyOverrideAngle(apply_angle: float, driverTorque: float, vEgo: float, VM: VehicleModel) -> float:
     # ignore torque pffset and disturbances
     steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_BIAS_MAX, STEER_BIAS_MAX)
-    
+
     # todo maybe saturate target lateral acc based on safety limit minus actual lateral acc
-    torque_to_angle = get_max_angle(max(1, vEgo), VM, STEER_OVERRRIDE_MAX_LAT_ACCEL) / (STEER_OVERRIDE_MAX_TORQUE - STEER_BIAS_MAX)
-    override_angle_target = steering_torque_deadzone * min(torque_to_angle, STEER_OVERRRIDE_GAIN_LIMIT)
-  
+    torque_to_angle = get_max_angle(max(1, vEgo), VM, STEER_OVERRIDE_MAX_LAT_ACCEL) / (STEER_OVERRIDE_MAX_TORQUE - STEER_BIAS_MAX)
+    override_angle_target = steering_torque_deadzone * min(torque_to_angle, STEER_OVERRIDE_GAIN_LIMIT)
+
     return apply_angle + override_angle_target
-  
+
 class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP):
     super().__init__(dbc_names, CP)
