@@ -61,13 +61,23 @@ def get_safety_CP():
   from opendbc.car.tesla.interface import CarInterface
   return CarInterface.get_non_essential_params("TESLA_MODEL_Y")
 
-def applyOverrideAngle(apply_angle: float, driverTorque: float, vEgo: float, VM: VehicleModel) -> float:
+def applyOverrideAngle(apply_angle: float, apply_angle_last: float, driverTorque: float, vEgo: float, VM: VehicleModel) -> float:
     # ignore torque pffset and disturbances
     steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_OVERRIDE_MIN_TORQUE, STEER_OVERRIDE_MIN_TORQUE)
-
+    max_override_torque = (STEER_OVERRIDE_MAX_TORQUE - STEER_OVERRIDE_MIN_TORQUE)
     # todo maybe saturate target lateral acc based on safety limit minus actual lateral acc
     torque_to_angle = get_max_angle(max(1, vEgo), VM, STEER_OVERRIDE_MAX_LAT_ACCEL) / (STEER_OVERRIDE_MAX_TORQUE - STEER_OVERRIDE_MIN_TORQUE)
     override_angle_target = steering_torque_deadzone * min(torque_to_angle, STEER_OVERRIDE_GAIN_LIMIT)
+
+    apply_angle_delta = apply_angle - apply_angle_last
+
+    # slow down model request if it wants to move opposite to the driver torque
+    if apply_angle_delta * steering_torque_deadzone < 0:
+      steering_torque_deadzone = np.clip(steering_torque_deadzone, -STEER_OVERRIDE_MAX_TORQUE, STEER_OVERRIDE_MAX_TORQUE) # make sure it actually is bounded
+      override_strength = (abs(steering_torque_deadzone) - max_override_torque) / max_override_torque
+      # linearly scale the angle delta until model requests stops moving
+      apply_angle_delta_slow = apply_angle_delta * (1 - override_strength)
+      apply_angle = apply_angle_last + apply_angle_delta_slow
 
     return apply_angle + override_angle_target
 
@@ -90,11 +100,16 @@ class CarController(CarControllerBase):
     # Canceling is done on rising edge and is handled generically with CC.cruiseControl.cancel
     lat_active = CC.latActive and CS.hands_on_level < 3
     if self.frame % 2 == 0:
-      # Add driver override
-      steering_angle_with_override = applyOverrideAngle(actuators.steeringAngleDeg, CS.out.steeringTorque, CS.out.vEgoRaw, self.VM)
-
       # Angular rate limit based on speed
-      self.apply_angle_last = apply_tesla_steer_angle_limits(steering_angle_with_override, self.apply_angle_last,
+      apply_angle = apply_tesla_steer_angle_limits(actuators.steeringAngleDeg, self.apply_angle_last,
+                                                             CS.out.vEgoRaw, CS.out.steeringAngleDeg, lat_active,
+                                                             CarControllerParams.ANGLE_LIMITS, self.VM)
+
+      # Add driver override
+      apply_angle_with_override = applyOverrideAngle(apply_angle, self.apply_angle_last, CS.out.steeringTorque, CS.out.vEgoRaw, self.VM)
+
+      # limit again after driver override angle injection
+      self.apply_angle_last = apply_tesla_steer_angle_limits(apply_angle_with_override, self.apply_angle_last,
                                                              CS.out.vEgoRaw, CS.out.steeringAngleDeg, lat_active,
                                                              CarControllerParams.ANGLE_LIMITS, self.VM)
 
