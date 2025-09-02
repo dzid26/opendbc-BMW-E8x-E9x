@@ -62,19 +62,19 @@ def get_safety_CP():
   return CarInterface.get_non_essential_params("TESLA_MODEL_Y")
 
 def applyOverrideAngle(apply_angle: float, apply_angle_last: float, driverTorque: float, vEgo: float, VM: VehicleModel) -> float:
-    # ignore torque pffset and disturbances
-    steering_torque_deadzone = driverTorque - np.clip(driverTorque, -STEER_OVERRIDE_MIN_TORQUE, STEER_OVERRIDE_MIN_TORQUE)
+    # add deadzone ignores torque offset and disturbances
+    steering_torque_with_deadzone = driverTorque - np.clip(driverTorque, -STEER_OVERRIDE_MIN_TORQUE, STEER_OVERRIDE_MIN_TORQUE)
     max_override_torque = (STEER_OVERRIDE_MAX_TORQUE - STEER_OVERRIDE_MIN_TORQUE)
-    # todo maybe saturate target lateral acc based on safety limit minus actual lateral acc
+    # todo torque to lat acc is not exactly linear so scale STEER_OVERRIDE_MAX_LAT_ACCEL instead
     torque_to_angle = get_max_angle(max(1, vEgo), VM, STEER_OVERRIDE_MAX_LAT_ACCEL) / (STEER_OVERRIDE_MAX_TORQUE - STEER_OVERRIDE_MIN_TORQUE)
-    override_angle_target = steering_torque_deadzone * min(torque_to_angle, STEER_OVERRIDE_GAIN_LIMIT)
+    override_angle_target = steering_torque_with_deadzone * min(torque_to_angle, STEER_OVERRIDE_GAIN_LIMIT)
 
     apply_angle_delta = apply_angle - apply_angle_last
 
     # slow down model request if it wants to move opposite to the driver torque
-    if apply_angle_delta * steering_torque_deadzone < 0:
-      steering_torque_deadzone = np.clip(steering_torque_deadzone, -STEER_OVERRIDE_MAX_TORQUE, STEER_OVERRIDE_MAX_TORQUE) # make sure it actually is bounded
-      override_strength = (abs(steering_torque_deadzone) - max_override_torque) / max_override_torque
+    if apply_angle_delta * steering_torque_with_deadzone < 0:
+      steering_torque_with_deadzone = np.clip(steering_torque_with_deadzone, -STEER_OVERRIDE_MAX_TORQUE, STEER_OVERRIDE_MAX_TORQUE) # make sure it actually is bounded
+      override_strength = (abs(steering_torque_with_deadzone) - max_override_torque) / max_override_torque
       # linearly scale the angle delta until model requests stops moving
       apply_angle_delta_slow = apply_angle_delta * (1 - override_strength)
       apply_angle = apply_angle_last + apply_angle_delta_slow
