@@ -15,7 +15,7 @@ AVERAGE_ROAD_ROLL = 0.06  # ~3.4 degrees, 6% superelevation. higher actual roll 
 MAX_LATERAL_ACCEL = ISO_LATERAL_ACCEL + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3.6 m/s^2
 MAX_LATERAL_JERK = 3.0 + (ACCELERATION_DUE_TO_GRAVITY * AVERAGE_ROAD_ROLL)  # ~3.6 m/s^3
 
-STEER_BIAS_MAX = 0.3 # Nm
+STEER_BIAS_MAX = 0.5 # Nm
 STEER_OVERRIDE_MAX_TORQUE = 2.5 # Nm max torque before EPS disengages
 STEER_OVERRIDE_MAX_LAT_ACCEL = 2.0 # m/s^2 - similar to Tesla comfort steering mode
 STEER_OVERRIDE_GAIN_LIMIT = 10 # jerky but stable
@@ -68,7 +68,7 @@ def applyOverrideAngle(target_angle_last, apply_angle_last, apply_angle: float, 
   torque_to_angle = get_max_angle(max(1, vEgo), VM, STEER_OVERRIDE_MAX_LAT_ACCEL) / (STEER_OVERRIDE_MAX_TORQUE - STEER_BIAS_MAX)
   override_angle_target = steering_torque_deadzone * min(torque_to_angle, STEER_OVERRIDE_GAIN_LIMIT)
 
-  if apply_angle * steering_torque_deadzone < 0 or not lat_active:
+  if apply_angle * steering_torque_deadzone < 0 and lat_active:
     # use last target angle if driver torque is opposite to it
     if driverTorque > 0:
       target_angle_last = max(target_angle_last, apply_angle)
