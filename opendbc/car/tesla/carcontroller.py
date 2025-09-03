@@ -73,8 +73,7 @@ def applyOverrideAngle(apply_angle: float, apply_angle_last: float, driverTorque
 
     # slow down model request if it wants to move opposite to the driver torque
     if apply_angle_delta * steering_torque_with_deadzone < 0:
-      steering_torque_with_deadzone = np.clip(steering_torque_with_deadzone, -STEER_OVERRIDE_MAX_TORQUE, STEER_OVERRIDE_MAX_TORQUE) # make sure it actually is bounded
-      override_strength = (abs(steering_torque_with_deadzone) - max_override_torque) / max_override_torque
+      override_strength = np.clip(abs(steering_torque_with_deadzone) / max_override_torque, 0, 1)
       # linearly scale the angle delta until model requests stops moving
       apply_angle_delta_slow = apply_angle_delta * (1 - override_strength)
       apply_angle = apply_angle_last + apply_angle_delta_slow
