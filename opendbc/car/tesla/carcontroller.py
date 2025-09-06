@@ -54,6 +54,28 @@ def apply_tesla_steer_angle_limits(apply_angle: float, apply_angle_last: float, 
   # prevent fault
   return float(np.clip(new_apply_angle, -limits.STEER_ANGLE_MAX, limits.STEER_ANGLE_MAX))
 
+def apply_tesla_override_angle_limits(apply_angle: float, apply_angle_last: float, v_ego_raw: float, steering_angle: float,
+                                   lat_active: bool, limits: AngleSteeringLimits, VM: VehicleModel) -> float:
+  v_ego_raw = max(v_ego_raw, 1)
+
+  # *** max lateral jerk limit ***
+  max_angle_delta = get_max_angle_delta(v_ego_raw, VM)
+
+  # prevent fault
+  max_angle_delta = min(max_angle_delta, 12)
+  new_apply_angle = rate_limit(apply_angle, apply_angle_last, -max_angle_delta, max_angle_delta)
+
+  # *** max lateral accel limit ***
+  max_angle = get_max_angle(v_ego_raw, VM)
+  new_apply_angle = np.clip(new_apply_angle, -max_angle, max_angle)
+
+  # angle is current angle when inactive
+  if not lat_active:
+    new_apply_angle = steering_angle
+
+  # prevent fault
+  return float(np.clip(new_apply_angle, -limits.STEER_ANGLE_MAX, limits.STEER_ANGLE_MAX))
+
 
 def get_safety_CP():
   # We use the TESLA_MODEL_Y platform for lateral limiting to match safety
@@ -99,7 +121,7 @@ class CarController(CarControllerBase):
       apply_angle_with_override = applyOverrideAngle(apply_angle, self.apply_angle_last, CS.out.steeringTorque, CS.out.vEgoRaw, self.VM)
 
       # limit again after driver override angle injection
-      self.apply_angle_last = apply_tesla_steer_angle_limits(apply_angle_with_override, self.apply_angle_last,
+      self.apply_angle_last = apply_tesla_override_angle_limits(apply_angle_with_override, self.apply_angle_last,
                                                              CS.out.vEgoRaw, CS.out.steeringAngleDeg, lat_active,
                                                              CarControllerParams.ANGLE_LIMITS, self.VM)
 
