@@ -132,7 +132,7 @@ class CarController(CarControllerBase):
     if not cruise_stalk_human_pressing and CS.out.cruiseState.enabled:
       if self.cruise_cancel:
         cruise_cmd(CruiseStalk.cancel)
-        print("cancel")
+        # print("cancel")
       elif CC.enabled:
         if (self.accel_with_hyst > ACCEL_HOLD_STRONG or (self.accel_with_hyst > ACCEL_HOLD_MEDIUM and speed_err_act > 3.0)) \
             and not speed_err_req < -10*CV.KPH_TO_MS*self.cruise_units:
@@ -154,8 +154,8 @@ class CarController(CarControllerBase):
 
 
     if self.flags & BmwFlags.STEPPER_SERVO_CAN:
-      steer_error =  not CC.latActive and CC.enabled
-      if not steer_error: # don't send steer CAN tx if steering is unavailable
+      # steer_error =  not CC.latActive and CC.enabled
+      # if not steer_error: # don't send steer CAN tx if steering is unavailable
         # *** apply steering torque ***
         if CC.enabled:
           new_steer = actuators.torque * CarControllerParams.STEER_MAX
@@ -165,9 +165,9 @@ class CarController(CarControllerBase):
                                              CarControllerParams.STEER_DELTA_UP, CarControllerParams.STEER_DELTA_DOWN,
                                              CarControllerParams.STEER_ERROR_MAX, CarControllerParams.STEER_MAX)
           can_sends.append(bmwcan.create_steer_command(self.frame, SteeringModes.TorqueControl, apply_torque))
-        elif not CS.cruise_stalk_cancel and not CS.out.brakePressed and not CS.out.gasPressed and self.apply_torque_last != 0:
-          can_sends.append(bmwcan.create_steer_command(self.frame, SteeringModes.SoftOff, self.apply_torque_last))
-          apply_torque = CS.out.steeringTorqueEps
+        # elif not CS.cruise_stalk_cancel and not CS.out.brakePressed and not CS.out.gasPressed and self.apply_torque_last != 0:
+        #   can_sends.append(bmwcan.create_steer_command(self.frame, SteeringModes.SoftOff, self.apply_torque_last))
+        #   apply_torque = CS.out.steeringTorqueEps
         else:
           apply_torque = 0
           can_sends.append(bmwcan.create_steer_command(self.frame, SteeringModes.Off))
@@ -176,7 +176,7 @@ class CarController(CarControllerBase):
     # debug
     if CC.enabled and (self.frame % 10) == 0: #slow print
       frame_number = self.frame
-      print(f"Steering req: {actuators.torque}, Speed: {CS.out.vEgoCluster}, Frame number: {frame_number}")
+      # print(f"Steering req: {actuators.torque}, Speed: {CS.out.vEgoCluster}, Frame number: {frame_number}")
 
     self.cruise_enabled_prev = CC.enabled
 

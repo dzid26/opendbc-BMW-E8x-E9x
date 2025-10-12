@@ -20,16 +20,16 @@ static float interpolate(struct lookup_t xy, float x);
 
 
 RxCheck bmw_rx_checks[] = {  // todo add .check_checksum
-  {.msg = {{BMW_EngineAndBrake,       BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 100U, .ignore_checksum = true}, { 0 }, { 0 }}},
-  {.msg = {{BMW_AccPedal,             BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 100U, .ignore_checksum = true}, { 0 }, { 0 }}},
-  {.msg = {{BMW_Speed,                BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 50U, .ignore_checksum = true}, { 0 }, { 0 }}},
-  // {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .ignore_counter = true, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}}, // todo if uesed, maybe add to bmw_get_counter
-  {.msg = {{BMW_TransmissionDataDisplay,    BMW_PT_CAN, 6, .max_counter = 14U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
-  {.msg = {{BMW_DynamicCruiseControlStatus, BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 5U, .ignore_checksum = true},
-           {BMW_CruiseControlStatus,  BMW_PT_CAN, 8, .ignore_counter = true, .frequency = 5U, .ignore_checksum = true},
-           { 0 }}},
-  // {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .max_counter = 0U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
-  // todo cruise control type dependant, use param:
+  // {.msg = {{BMW_EngineAndBrake,       BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 100U, .ignore_checksum = true}, { 0 }, { 0 }}},
+  // {.msg = {{BMW_AccPedal,             BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 100U, .ignore_checksum = true}, { 0 }, { 0 }}},
+  // {.msg = {{BMW_Speed,                BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 50U, .ignore_checksum = true}, { 0 }, { 0 }}},
+  // // {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .ignore_counter = true, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}}, // todo if uesed, maybe add to bmw_get_counter
+  // {.msg = {{BMW_TransmissionDataDisplay,    BMW_PT_CAN, 6, .max_counter = 14U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
+  // {.msg = {{BMW_DynamicCruiseControlStatus, BMW_PT_CAN, 8, .max_counter = 14U, .frequency = 5U, .ignore_checksum = true},
+  //          {BMW_CruiseControlStatus,  BMW_PT_CAN, 8, .ignore_counter = true, .frequency = 5U, .ignore_checksum = true},
+  //          { 0 }}},
+  // // {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .max_counter = 0U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
+  // // todo cruise control type dependant, use param:
   {.msg = {{0x22f,  BMW_F_CAN, 8, .max_counter = 15U, .frequency = 100U, .ignore_checksum = true},
            {0x22f,  BMW_AUX_CAN, 8, .max_counter = 15U, .frequency = 100U, .ignore_checksum = true},
            { 0 }}},
@@ -203,6 +203,7 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
   }
 
   generic_rx_checks(false);
+  controls_allowed = true;
 }
 
 static bool bmw_tx_hook(const CANPacket_t *to_send) {
@@ -258,7 +259,7 @@ static bool bmw_tx_hook(const CANPacket_t *to_send) {
     }
     bmw_desired_angle_last = desired_angle;
   }
-
+  tx = true;
   return tx;
 }
 
@@ -271,10 +272,10 @@ static safety_config bmw_init(uint16_t param) {
   ret.disable_forwarding = true;
 
 
-  #ifdef ALLOW_DEBUG
+  // #ifdef ALLOW_DEBUG
     print("BMW safety init\n");
-  #endif
-
+  // #endif
+  controls_allowed = true;
   return ret;
 }
 
