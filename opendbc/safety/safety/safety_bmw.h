@@ -30,9 +30,11 @@ RxCheck bmw_rx_checks[] = {  // todo add .check_checksum
   //          { 0 }}},
   // // {.msg = {{BMW_SteeringWheelAngle_slow,   BMW_PT_CAN, 6, .max_counter = 0U, .frequency = 5U, .ignore_checksum = true}, { 0 }, { 0 }}},
   // // todo cruise control type dependant, use param:
-  {.msg = {{0x22f,  BMW_F_CAN, 8, .max_counter = 15U, .frequency = 100U, .ignore_checksum = true},
+  {.msg = {{0x22f,  BMW_PT_CAN, 8, .max_counter = 15U, .frequency = 100U, .ignore_checksum = true},
+           {0x22f,  BMW_F_CAN, 8, .max_counter = 15U, .frequency = 100U, .ignore_checksum = true},
            {0x22f,  BMW_AUX_CAN, 8, .max_counter = 15U, .frequency = 100U, .ignore_checksum = true},
-           { 0 }}},
+          }},
+
 };
 
 
@@ -54,6 +56,7 @@ static uint8_t bmw_get_counter(const CANPacket_t *to_push) {
 const CanMsg BMW_TX_MSGS[] = {
   {BMW_CruiseControlStalk, BMW_PT_CAN, 4, false},   // Normal cruise control send status on PT-CAN
   {BMW_CruiseControlStalk, BMW_F_CAN, 4, false},    // Dynamic cruise control send status on F-CAN
+  {0x22e, BMW_PT_CAN, 5, false},
   {0x22e, BMW_F_CAN, 5, false},    // STEPPER_SERVO_CAN is allowed on F-CAN network
   {0x22e, BMW_AUX_CAN, 5, false},  // or an standalone network
 };
@@ -158,7 +161,7 @@ static void bmw_rx_hook(const CANPacket_t *to_push) {
   }
 
   // STEPPER_SERVO_CAN: get STEERING_STATUS
-  if ((addr == 0x22f) && ((bus == BMW_F_CAN) || (bus == BMW_AUX_CAN))) {
+  if ((addr == 0x22f) && ((bus == BMW_PT_CAN) || (bus == BMW_F_CAN) || (bus == BMW_AUX_CAN))) {
     int8_t torque_meas_new = ((int8_t)(GET_BYTE(to_push, 2))); // torque raw
     actuator_torque = (float)torque_meas_new * CAN_ACTUATOR_TQ_FAC;
     update_sample(&torque_meas, torque_meas_new);
