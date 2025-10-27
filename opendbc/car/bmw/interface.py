@@ -104,15 +104,15 @@ class CarInterface(CarInterfaceBase):
     ret.safetyConfigs[0].safetyParam = 0
 
     ret.steerControlType = structs.CarParams.SteerControlType.torque
-    ret.steerActuatorDelay = 0.4
+    ret.steerActuatorDelay = 1.4
     ret.steerLimitTimer = 0.4
 
     CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
-    ret.lateralTuning.torque.kp = .5 / CarControllerParams.STEER_MAX
-    ret.lateralTuning.torque.ki = 0.5 / CarControllerParams.STEER_MAX
+    ret.lateralTuning.torque.kp = .1 / CarControllerParams.STEER_MAX
+    ret.lateralTuning.torque.ki = 0.1 / CarControllerParams.STEER_MAX
     ret.lateralTuning.torque.kf = 1.0 / CarControllerParams.STEER_MAX
     ret.lateralTuning.torque.useSteeringAngle = True
-    ret.lateralTuning.torque.steeringAngleDeadzoneDeg = 0.0 # backlash of stepper?
+    ret.lateralTuning.torque.steeringAngleDeadzoneDeg = 0 # backlash of stepper?
 
     ret.longitudinalActuatorDelay  = 1.0 #s, Gas/Brake actuator delay
     ret.longitudinalTuning.kpBP = [0.]
