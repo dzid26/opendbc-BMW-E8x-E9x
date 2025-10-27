@@ -7,6 +7,20 @@ from opendbc.car.bmw.values import DBC, CanBus, BmwFlags, CruiseSettings
 
 ButtonType = structs.CarState.ButtonEvent.Type
 
+# Hysteresis parameters
+HYSTERESIS_THRESHOLD = 0  # degrees of deadband
+
+class SteeringAngleFilter:
+    def __init__(self):
+        self.filtered_angle = 0.0
+
+    def update(self, new_angle):
+        # If difference is larger than threshold, update the filtered value
+        if abs(new_angle - self.filtered_angle) > HYSTERESIS_THRESHOLD:
+            self.filtered_angle = new_angle
+        return self.filtered_angle
+
+
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
@@ -144,10 +158,14 @@ class CarState(CarStateBase):
     #   else:
     #     ret.accFaulted = True
 
+    steering_filter = SteeringAngleFilter()
 
 
     if self.CP.flags & BmwFlags.STEPPER_SERVO_CAN:
-      ret.steeringAngleDeg =  cp_aux.vl['STEERING_STATUS']['STEERING_ANGLE']
+      raw_angle = cp_aux.vl['STEERING_STATUS']['STEERING_ANGLE']
+      filtered_angle = steering_filter.update(raw_angle)
+      ret.steeringAngleDeg = filtered_angle
+
       ret.steeringRateDeg =  cp_aux.vl['STEERING_STATUS']['STEERING_SPEED'] * 360.0
       ret.steeringTorqueEps = cp_aux.vl['STEERING_STATUS']['STEERING_TORQUE']
       ret.steeringAngleOffsetDeg = 0 # ret.steeringAngleDeg - cp_aux.vl['STEERING_STATUS']['STEERING_ANGLE']
