@@ -73,11 +73,11 @@ class BmwPlatformConfig(PlatformConfig):
 class CAR(Platforms):
   BMW_E82 = BmwPlatformConfig(
     [BmwCarDocs("BMW E82 2004-13")],
-    CarSpecs(mass=3145. * CV.LB_TO_KG + STD_CARGO_KG, wheelbase=2.66, steerRatio=16.00, tireStiffnessFactor=0.8)
+    CarSpecs(mass=3145. * CV.LB_TO_KG + STD_CARGO_KG, wheelbase=2.66, steerRatio=26.00, tireStiffnessFactor=0.8)
   )
   BMW_E90 = BmwPlatformConfig(
     [BmwCarDocs("BMW E90 2005-11")],
-    CarSpecs(mass=3300. * CV.LB_TO_KG + STD_CARGO_KG, wheelbase=2.76, steerRatio=16.00, tireStiffnessFactor=0.8)
+    CarSpecs(mass=3300. * CV.LB_TO_KG + STD_CARGO_KG, wheelbase=2.76, steerRatio=26.00, tireStiffnessFactor=0.8)
   )
 
 
