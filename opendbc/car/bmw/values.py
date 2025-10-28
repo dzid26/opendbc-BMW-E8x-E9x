@@ -32,7 +32,7 @@ class CruiseSettings:
 
 class CanBus:
   PT_CAN =    0
-  SERVO_CAN = 1 # required for steering
+  SERVO_CAN = 0 # required for steering
   F_CAN =     1 # required for DYNAMIC_CRUISE_CONTROL or optional for logging
   K_CAN =     2 # not used - only logging
 
